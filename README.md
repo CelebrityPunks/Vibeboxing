@@ -1,6 +1,6 @@
 # VibeBoxing Target Practice
 
-A simple webcam-based boxing target practice game built with Python, OpenCV, and MediaPipe. Hit the targets with your fists!
+    A simple webcam-based boxing target practice game built with Python, OpenCV, and MediaPipe. Hit the targets with your fists!
 
 ![Gameplay Demo](placeholder.gif) // TODO: Replace with an actual GIF or screenshot
 
