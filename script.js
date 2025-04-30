@@ -85,40 +85,37 @@ function showGameOverScreen() {
         goTitleButton.style.display = 'block';
 
         const screenshotPreview = document.getElementById('score-screenshot-preview');
-        if (screenshotPreview) screenshotPreview.style.display = 'none'; // Hide initially
-        if(shareScoreButton) shareScoreButton.disabled = true; // Disable share button initially
+        if (screenshotPreview) screenshotPreview.style.display = 'none';
+        if(shareScoreButton) shareScoreButton.disabled = true;
 
-        // --- Capture Screenshot --- 
-        try {
-            setTimeout(() => {
-                 if (renderer) {
-                    console.log("Attempting screenshot capture...");
-                    renderer.render(scene, camera); // Render the current frame
-                    screenshotDataUrl = renderer.domElement.toDataURL('image/png');
-                    console.log("Screenshot captured.");
+        // --- Capture Screenshot using html2canvas ---
+        setTimeout(() => { // Delay ensures DOM updates (score text) are visible
+            console.log("Attempting html2canvas capture...");
+            html2canvas(document.body, { // Capture the whole body
+                 useCORS: true, // Important for external assets if any
+                 logging: false, // Reduce console noise
+                 // Optional: Specify canvas dimensions if needed, but defaults usually work
+                 // width: window.innerWidth,
+                 // height: window.innerHeight
+            }).then(canvas => {
+                console.log("html2canvas capture successful.");
+                screenshotDataUrl = canvas.toDataURL('image/png'); // Get data URL from the NEW canvas
 
-                    // Display the screenshot preview
-                    if (screenshotPreview) {
-                         screenshotPreview.src = screenshotDataUrl;
-                         screenshotPreview.style.display = 'block'; // Show the preview
-                         console.log("Screenshot preview displayed.");
-                    } else {
-                        console.warn("Screenshot preview element not found.");
-                    }
+                if (screenshotPreview) {
+                    screenshotPreview.src = screenshotDataUrl;
+                    screenshotPreview.style.display = 'block';
+                    console.log("Screenshot preview updated with html2canvas result.");
+                } else { console.warn("Screenshot preview element not found."); }
 
-                    if(shareScoreButton) shareScoreButton.disabled = false; // Enable share button
-                 } else {
-                     console.error("Renderer not available for screenshot.");
-                     if(shareScoreButton) shareScoreButton.style.display = 'none'; // Hide if no renderer
-                 }
-            }, 150); // Increased delay slightly to 150ms
+                if(shareScoreButton) shareScoreButton.disabled = false;
 
-        } catch (e) {
-            console.error("Error capturing or displaying screenshot:", e);
-            screenshotDataUrl = null;
-            if (screenshotPreview) screenshotPreview.style.display = 'none';
-            if(shareScoreButton) shareScoreButton.style.display = 'none';
-        }
+            }).catch(e => {
+                console.error("html2canvas capture failed:", e);
+                screenshotDataUrl = null;
+                if (screenshotPreview) screenshotPreview.style.display = 'none';
+                if(shareScoreButton) shareScoreButton.style.display = 'none';
+            });
+        }, 150); // Keep delay
     }
 }
 
@@ -530,41 +527,32 @@ async function sendFrameToMediaPipe() {
 
 // --- Share Score Functionality ---
 async function shareScoreAction() {
-    if (!screenshotDataUrl) {
-        console.error("No screenshot available to share.");
-        alert("Could not generate score image.");
-        return;
-    }
-
-    const shareText = `I scored ${score} in VibeBoxing (${selectedDuration}s)! Can you beat it? #VibeBoxing`;
-    const shareUrl = "https://vibeboxing.netlify.app";
+    if (!screenshotDataUrl) { console.error("No screenshot available."); alert("Could not generate score image."); return; }
 
     try {
         const response = await fetch(screenshotDataUrl);
         const blob = await response.blob();
         const file = new File([blob], `vibeboxing_score_${score}.png`, { type: 'image/png' });
+
+        // Share data prioritizes the file
         const shareData = {
-            title: "VibeBoxing Score!",
-            text: shareText,
-            url: shareUrl,
-            files: [file]
+            // title: "VibeBoxing Score!", // Title often ignored when file sharing
+            files: [file],
+            // text: `I scored ${score}...`, // Removed text as requested
+            // url: "https://vibeboxing.netlify.app" // Removed URL
         };
-        const canShareFiles = navigator.canShare ? navigator.canShare(shareData) : false;
-        console.log(`Can share files? ${canShareFiles}`); // Log check result
-        if (canShareFiles) {
-            console.log("Attempting Web Share API with file...");
-            await navigator.share(shareData);
-            console.log("Score shared successfully!");
-        } else if (navigator.share) {
-           console.log("Cannot share file, attempting to share text/URL only...");
-           await navigator.share({ title: shareData.title, text: shareData.text, url: shareData.url });
-           console.log("Shared text/URL successfully.");
+
+        // Check if files can be shared
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+             console.log("Attempting Web Share API with image file only...");
+             await navigator.share(shareData);
+             console.log("Image shared successfully!");
         } else {
-            console.log("Web Share API not supported, falling back to download.");
+            console.log("Web Share API cannot share file (or not supported), falling back to download.");
             downloadScreenshot();
         }
     } catch (error) {
-        console.error("Error sharing score:", error);
+        console.error("Error sharing score image:", error);
         alert("Sharing failed. Downloading score image instead.");
         downloadScreenshot();
     }
