@@ -90,13 +90,12 @@ function showGameOverScreen() {
 
         // --- Capture Screenshot using html2canvas ---
         setTimeout(() => { // Delay ensures DOM updates (score text) are visible
-            console.log("Attempting html2canvas capture...");
-            html2canvas(document.body, { // Capture the whole body
-                 useCORS: true, // Important for external assets if any
-                 logging: false, // Reduce console noise
-                 // Optional: Specify canvas dimensions if needed, but defaults usually work
-                 // width: window.innerWidth,
-                 // height: window.innerHeight
+            console.log("Attempting html2canvas capture of game over screen...");
+            html2canvas(gameOverScreen, { // <--- Changed target
+                 useCORS: true,
+                 logging: false,
+                 // Explicitly set background to null to avoid default white if needed
+                 backgroundColor: null,
             }).then(canvas => {
                 console.log("html2canvas capture successful.");
                 screenshotDataUrl = canvas.toDataURL('image/png'); // Get data URL from the NEW canvas
