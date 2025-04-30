@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -8,9 +8,50 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&display=swap" rel="stylesheet">
     <title>Fruit Ninja - Hand Tracking</title>
+    <link rel="stylesheet" href="style.css">
   </head>
   <body>
+    <!-- UI Overlays -->
+    <div id="ui-container">
+        <div id="title-screen" class="overlay">
+            <h1>VibeBoxing</h1>
+            <div id="duration-selection">
+                <button class="duration-button" data-duration="30">30 Seconds</button>
+                <button class="duration-button" data-duration="60">60 Seconds</button>
+            </div>
+            <p>(Allow webcam access first)</p>
+        </div>
+
+        <div id="hud" class="overlay" style="display: none;">
+            <div id="score">Score: 0</div>
+            <div id="timer">Time: 0.0</div>
+        </div>
+
+        <div id="game-over-screen" class="overlay" style="display: none;">
+            <h2>Time's Up!</h2>
+            <div id="final-score">Final Score: 0</div>
+            <button id="restart-button">Play Again</button>
+        </div>
+    </div>
+
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <!-- Video element for webcam input -->
+    <video id="input_video" style="display: none;"></video>
+    <!-- Canvas for Three.js rendering -->
+    <!-- This will be created by Three.js in script.js -->
+
+    <!-- Load MediaPipe Hands -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/hands.js" crossorigin="anonymous"></script>
+    <!-- Load Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js"
+            }
+        }
+    </script>
+
+    <!-- Load our main script -->
+    <script type="module" src="script.js"></script>
   </body>
 </html>
