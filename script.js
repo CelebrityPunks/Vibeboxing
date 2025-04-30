@@ -294,19 +294,21 @@ function updateTargetTexture() {
 
 // --- Three.js Setup ---
 async function setupThreeJS() {
-    await preloadAssets(); // Wait for assets
+    await preloadAssets();
 
-    // --- Get UI Elements ---
+    // Get UI Elements (Ensure correct IDs and variable names)
     uiContainer = document.getElementById('ui-container');
     titleScreen = document.getElementById('title-screen');
     hud = document.getElementById('hud');
     scoreElement = document.getElementById('score');
-    timerElement = document.getElementById('timer'); // Get timer element
+    timerElement = document.getElementById('timer');
     gameOverScreen = document.getElementById('game-over-screen');
     finalScoreElement = document.getElementById('final-score');
-    restartButton = document.getElementById('restart-button');
-    durationButtons = document.querySelectorAll('.duration-button'); // Get duration buttons
+    // Correctly assign goTitleButton using its ID
+    goTitleButton = document.getElementById('go-title-button');
+    newHighscorePrompt = document.getElementById('new-highscore-prompt');
     leaderboardButton = document.getElementById('leaderboard-button');
+    durationButtons = document.querySelectorAll('.duration-button');
     leaderboardScreen = document.getElementById('leaderboard-screen');
     lbList30 = document.getElementById('lb-30');
     lbList60 = document.getElementById('lb-60');
@@ -315,58 +317,37 @@ async function setupThreeJS() {
     nameEntryScoreElement = document.getElementById('name-entry-score');
     nameInput = document.getElementById('name-input');
     submitScoreButton = document.getElementById('submit-score-button');
-    goTitleButton = document.getElementById('go-title-button');
-    newHighscorePrompt = document.getElementById('new-highscore-prompt');
+    // Correctly get the "Enter Name" button from within the prompt div
+    const enterNameButton = document.getElementById('enter-name-button'); // Use this variable below
 
-    // Add Duration Button Listeners
+    // Add Event Listeners
     durationButtons.forEach(button => {
         button.addEventListener('click', () => {
             const duration = parseInt(button.getAttribute('data-duration'), 10);
             startGame(duration);
         });
     });
-
-    // Add Restart Button Listener
-    if(restartButton) {
-        restartButton.addEventListener('click', showTitleScreen); // Go back to title for now
-    }
-
-    // Add Leaderboard Button Listener
-    if(leaderboardButton) {
-        leaderboardButton.addEventListener('click', showLeaderboardScreen);
-    }
-
-    // Add Enter Name Button Listener
+    // Use the correct variable for the listener
+    if(goTitleButton) {
+        goTitleButton.addEventListener('click', showTitleScreen);
+    } else { console.error("Go Title button not found!"); }
+    // Use the 'enterNameButton' variable fetched above
     if(enterNameButton) {
         enterNameButton.addEventListener('click', showEnterNameScreen);
-    }
-
-    // Add Back Button Listener
-    if(lbBackButton) {
-        lbBackButton.addEventListener('click', showTitleScreen);
-    }
-
-    // Add Submit Score Listener
-    if(submitScoreButton) {
-        submitScoreButton.addEventListener('click', submitScore);
-    }
-
-    // Allow submitting name with Enter key
-    if(nameInput) {
-        nameInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                submitScore();
-            }
-        });
-    }
+    } else { console.error("Enter Name button not found!"); }
+    // ... other listeners remain the same ...
+    if(leaderboardButton) { leaderboardButton.addEventListener('click', showLeaderboardScreen); } else { console.error("Leaderboard button not found!"); }
+    if(lbBackButton) { lbBackButton.addEventListener('click', showTitleScreen); } else { console.error("Leaderboard Back button not found!"); }
+    if(submitScoreButton) { submitScoreButton.addEventListener('click', submitScore); } else { console.error("Submit Score button not found!"); }
+    if(nameInput) { nameInput.addEventListener('keypress', function (e) { if (e.key === 'Enter') { submitScore(); } }); }
 
     scene = new THREE.Scene();
     // --- Use video texture for background ---
     const videoTexture = new THREE.VideoTexture(videoElement);
-    videoTexture.minFilter = THREE.LinearFilter; // Optional: improve texture filtering
+    videoTexture.minFilter = THREE.LinearFilter;
     videoTexture.magFilter = THREE.LinearFilter;
     // --- SET TEXTURE COLOR SPACE ---
-    videoTexture.colorSpace = THREE.SRGBColorSpace; // Explicitly set color space
+    videoTexture.colorSpace = THREE.SRGBColorSpace;
 
     // Flip the background video texture horizontally
     videoTexture.wrapS = THREE.RepeatWrapping;
