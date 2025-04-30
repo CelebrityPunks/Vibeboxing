@@ -578,25 +578,40 @@ async function shareScoreAction() {
         const blob = await response.blob();
         const file = new File([blob], `vibeboxing_score_${score}.png`, { type: 'image/png' });
 
-        // Share data prioritizes the file
+        // Share data including file and URL
         const shareData = {
-            // title: "VibeBoxing Score!", // Title often ignored when file sharing
+            title: "VibeBoxing Score!", // Add title back for context
             files: [file],
-            // text: `I scored ${score}...`, // Removed text as requested
-            // url: "https://vibeboxing.netlify.app" // Removed URL
+            // text: `I scored ${score}...`, // Still keeping text out unless requested
+            url: "https://vibeboxing.netlify.app" // Add URL back
         };
 
-        // Check if files can be shared
-        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-             console.log("Attempting Web Share API with image file only...");
+        // Check if both files and URL can be shared (best effort check)
+        // Note: Actual support varies by platform/app
+        if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+             console.log("Attempting Web Share API with image file and URL...");
              await navigator.share(shareData);
-             console.log("Image shared successfully!");
-        } else {
-            console.log("Web Share API cannot share file (or not supported), falling back to download.");
+             console.log("Shared image and URL successfully!");
+        }
+        // Fallback 1: Try sharing file only if combined share failed/not supported
+        else if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+             console.log("Cannot share file and URL together, attempting file only...");
+             await navigator.share({ files: [file] });
+             console.log("Shared image file only successfully!");
+        }
+        // Fallback 2: Share URL only if file sharing isn't supported at all
+         else if (navigator.share) {
+            console.log("Cannot share file, attempting to share URL only...");
+            await navigator.share({ title: shareData.title, url: shareData.url });
+            console.log("Shared URL only successfully.");
+         }
+        // Fallback 3: Download
+        else {
+            console.log("Web Share API not supported, falling back to download.");
             downloadScreenshot();
         }
     } catch (error) {
-        console.error("Error sharing score image:", error);
+        console.error("Error sharing score:", error); // Generalize error message
         alert("Sharing failed. Downloading score image instead.");
         downloadScreenshot();
     }
