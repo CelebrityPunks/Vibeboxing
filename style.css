@@ -109,8 +109,20 @@ canvas {
 }
 
 /* Game Over Screen Styles */
-#game-over-screen h2 { font-size: 3em; color: #ff4444; margin-bottom: 20px; }
-#final-score { font-size: 2em; margin-bottom: 20px; } /* Reduced margin */
+#game-over-screen h2 { font-size: 3em; color: #ff4444; margin-bottom: 15px; } /* Reduced margin */
+
+/* Style for the screenshot preview */
+#score-screenshot-preview {
+    display: block; /* Make it a block element */
+    width: 250px;   /* Fixed width */
+    height: 150px;  /* Fixed height (adjust aspect as needed) */
+    object-fit: cover; /* Cover the area, might crop */
+    border: 3px solid #cccccc;
+    margin: 0 auto 15px auto; /* Center horizontally, add margin below */
+    background-color: #222; /* Placeholder background */
+}
+
+#final-score { font-size: 2em; margin-bottom: 15px; } /* Reduced margin */
 
 #share-score-button {
     /* Uses .button-primary styles */
