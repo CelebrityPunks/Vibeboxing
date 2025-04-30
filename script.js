@@ -90,31 +90,51 @@ function showGameOverScreen() {
 
         // --- Capture Screenshot using html2canvas ---
         setTimeout(() => { // Delay ensures DOM updates (score text) are visible
-            console.log("Attempting html2canvas capture of game over screen...");
-            html2canvas(gameOverScreen, { // <--- Changed target
-                 useCORS: true,
-                 logging: false,
-                 // Explicitly set background to null to avoid default white if needed
-                 backgroundColor: null,
+            console.log("Attempting html2canvas capture of document.body...");
+            // Revert target back to document.body
+            html2canvas(document.body, {
+                 useCORS: true, // Still needed for external resources
+                 logging: true, // Turn ON verbose logging for html2canvas
+                 backgroundColor: null, // Try to keep background transparent
+                 // Optional: Explicit dimensions might sometimes help
+                 // width: window.innerWidth,
+                 // height: window.innerHeight,
+                 onclone: (clonedDoc) => { // Log during cloning process
+                    console.log("html2canvas: Document cloned for rendering.");
+                    // Optional: Modify clonedDoc here if needed
+                 }
             }).then(canvas => {
-                console.log("html2canvas capture successful.");
-                screenshotDataUrl = canvas.toDataURL('image/png'); // Get data URL from the NEW canvas
+                console.log("html2canvas capture successful. Canvas obtained.");
+                try {
+                    screenshotDataUrl = canvas.toDataURL('image/png'); // Generate data URL
+                    console.log("Data URL generated successfully:", screenshotDataUrl.substring(0, 100) + "..."); // Log start of URL
 
-                if (screenshotPreview) {
-                    screenshotPreview.src = screenshotDataUrl;
-                    screenshotPreview.style.display = 'block';
-                    console.log("Screenshot preview updated with html2canvas result.");
-                } else { console.warn("Screenshot preview element not found."); }
+                    if (screenshotPreview) {
+                        screenshotPreview.src = screenshotDataUrl;
+                        screenshotPreview.style.display = 'block';
+                        console.log("Screenshot preview updated.");
+                    } else { console.warn("Screenshot preview element not found."); }
 
-                if(shareScoreButton) shareScoreButton.disabled = false;
+                    if(shareScoreButton) shareScoreButton.disabled = false;
+
+                } catch (e) {
+                     // This catch block is often hit if the canvas becomes "tainted" due to CORS issues
+                    console.error("CRITICAL: Error generating Data URL from canvas - likely tainted by cross-origin content.", e);
+                     screenshotDataUrl = null;
+                    if (screenshotPreview) screenshotPreview.style.display = 'none';
+                    if(shareScoreButton) shareScoreButton.style.display = 'none';
+                    alert("Error generating screenshot image. Security restrictions might be blocking content.");
+                }
 
             }).catch(e => {
-                console.error("html2canvas capture failed:", e);
+                 // This catches errors in the html2canvas process itself
+                console.error("html2canvas capture process failed:", e);
                 screenshotDataUrl = null;
                 if (screenshotPreview) screenshotPreview.style.display = 'none';
                 if(shareScoreButton) shareScoreButton.style.display = 'none';
+                alert("Error creating screenshot image.");
             });
-        }, 150); // Keep delay
+        }, 200); // Increased delay slightly to 200ms
     }
 }
 
