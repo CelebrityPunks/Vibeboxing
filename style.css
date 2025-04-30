@@ -42,11 +42,9 @@ canvas {
 }
 
 #title-image {
-    max-width: 80%; /* Prevent image from being too wide */
-    height: auto; /* Maintain aspect ratio */
-    margin-bottom: 25px; /* Space below image */
-    /* Optional: add drop shadow or other effects */
-    /* filter: drop-shadow(3px 3px 5px rgba(0,0,0,0.7)); */
+    max-width: 60%; /* Reduced size */
+    height: auto;
+    margin-bottom: 25px;
 }
 
 #title-screen button {
@@ -69,7 +67,7 @@ canvas {
 }
 
 #title-screen p {
-    margin-top: 15px; /* Reduced margin */
+    margin-top: 15px;
     font-size: 0.9em;
     color: #ccc;
 }
@@ -175,6 +173,211 @@ canvas {
 #title-screen #leaderboard-button:hover {
     background-color: #777;
 }
+
+
+/* Game Over Screen adjustments */
+#new-highscore-prompt {
+    margin: 15px 0;
+    font-size: 1.2em;
+    color: #00ff00;
+}
+#new-highscore-prompt button, #go-title-button {
+    padding: 10px 20px;
+    font-size: 1.2em;
+    margin-top: 10px;
+     font-family: 'Exo 2', sans-serif;
+    cursor: pointer;
+    background-color: #00ffff;
+    color: #111;
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 255, 255, 0.4);
+    transition: background-color 0.2s, box-shadow 0.2s;
+    pointer-events: auto;
+}
+#new-highscore-prompt button:hover, #go-title-button:hover {
+     background-color: #00dddd;
+    box-shadow: 0 6px 12px rgba(0, 255, 255, 0.6);
+}
+
+
+/* Enter Name Screen Styles */
+#enter-name-screen h2 { font-size: 3em; margin-bottom: 15px; color: #00ff00; }
+#enter-name-screen p { font-size: 1.5em; margin-bottom: 20px; }
+#enter-name-screen input {
+    padding: 10px;
+    font-size: 1.2em;
+    margin-bottom: 20px;
+    width: 250px;
+    max-width: 80%;
+    text-align: center;
+    background-color: #333;
+    color: white;
+    border: 1px solid #777;
+    border-radius: 4px;
+    pointer-events: auto;
+}
+#enter-name-screen button {
+    padding: 12px 25px;
+    font-size: 1.3em;
+     font-family: 'Exo 2', sans-serif;
+    cursor: pointer;
+    background-color: #00ff00;
+    color: #111;
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 255, 0, 0.4);
+    pointer-events: auto;
+}
+#enter-name-screen button:hover {
+    background-color: #00dd00;
+    box-shadow: 0 6px 12px rgba(0, 255, 0, 0.6);
+}
+
+/* Leaderboard Screen Styles */
+#leaderboard-screen h2 { font-size: 3em; margin-bottom: 25px; }
+#leaderboard-screen .leaderboard-columns {
+    display: flex;
+    gap: 50px; /* Space between columns */
+    margin-bottom: 30px;
+    width: 80%;
+    max-width: 700px;
+    justify-content: space-around;
+}
+#leaderboard-screen .leaderboard-column {
+    flex: 1;
+    text-align: center;
+}
+#leaderboard-screen .leaderboard-column h3 {
+    font-size: 1.8em;
+    color: #00ffff;
+    margin-bottom: 15px;
+}
+#leaderboard-screen ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 1.2em;
+    line-height: 1.6;
+}
+#leaderboard-screen li {
+    border-bottom: 1px dashed #555;
+    padding: 5px 0;
+}
+#leaderboard-screen li:last-child {
+    border-bottom: none;
+}
+#leaderboard-screen li span {
+    display: inline-block; /* Allow spacing */
+}
+#leaderboard-screen li .lb-name {
+    width: 60%; /* Adjust as needed */
+    text-align: left;
+    padding-left: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#leaderboard-screen li .lb-score {
+    width: 35%; /* Adjust as needed */
+    text-align: right;
+    padding-right: 10px;
+    color: #00ff00;
+}
+#leaderboard-screen #lb-back-button {
+     padding: 10px 20px;
+    font-size: 1.1em;
+     font-family: 'Exo 2', sans-serif;
+    cursor: pointer;
+    background-color: #555;
+    color: #eee;
+    border: none;
+    border-radius: 5px;
+    pointer-events: auto;
+}
+#leaderboard-screen #lb-back-button:hover {
+    background-color: #777;
+}
+
+/* --- Base Button Styles --- */
+.button-primary, .button-secondary {
+    padding: 12px 25px; /* Default padding */
+    font-size: 1.3em; /* Default font size */
+    font-family: 'Exo 2', sans-serif;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.2s, box-shadow 0.2s, transform 0.1s;
+    pointer-events: auto; /* Make sure buttons are clickable */
+    margin-top: 10px; /* Add some default top margin */
+    min-width: 150px; /* Ensure minimum width */
+    text-align: center;
+}
+.button-primary:active, .button-secondary:active {
+    transform: translateY(1px); /* Simple pressed effect */
+}
+
+/* --- Primary Button (Cyan) --- */
+.button-primary {
+    background-color: #00ffff;
+    color: #111;
+    box-shadow: 0 4px 8px rgba(0, 255, 255, 0.4);
+}
+.button-primary:hover {
+    background-color: #00dddd;
+    box-shadow: 0 6px 12px rgba(0, 255, 255, 0.6);
+}
+
+/* --- Secondary Button (Dark Gray) --- */
+.button-secondary {
+    background-color: #555;
+    color: #eee;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+.button-secondary:hover {
+    background-color: #777;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* --- Specific Button Adjustments --- */
+
+/* Duration buttons (covered by .button-primary defaults) */
+
+/* Leaderboard button - Make slightly smaller */
+#leaderboard-button {
+    padding: 10px 20px;
+    font-size: 1.1em;
+    margin-top: 20px; /* More space after duration */
+}
+
+/* Game Over Screen buttons */
+#new-highscore-prompt button, #go-title-button {
+    font-size: 1.2em;
+    /* Base styles handled by primary/secondary classes */
+}
+
+/* Enter Name Screen button */
+#enter-name-screen button {
+     /* Base styles handled by primary class */
+}
+
+/* Leaderboard Back button - Make smaller */
+#leaderboard-screen #lb-back-button {
+    padding: 10px 20px;
+    font-size: 1.1em;
+     /* Base styles handled by secondary class */
+}
+
+
+/* --- Cleanup Old Specific Button Styles --- */
+/* Remove styles like: */
+/* #title-screen #leaderboard-button { background-color: #555; ... } */
+/* #title-screen #leaderboard-button:hover { background-color: #777; } */
+/* #new-highscore-prompt button:hover { ... } */
+/* #enter-name-screen button { ... } */
+/* #enter-name-screen button:hover { ... } */
+/* #leaderboard-screen #lb-back-button { ... } */
+/* #leaderboard-screen #lb-back-button:hover { ... } */
 
 
 /* Game Over Screen adjustments */

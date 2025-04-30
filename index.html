@@ -16,10 +16,10 @@
         <div id="title-screen" class="overlay">
             <img src="assets/VibeBoxing.png" alt="VibeBoxing Title" id="title-image">
             <div id="duration-selection">
-                <button class="duration-button" data-duration="30">30 Seconds</button>
-                <button class="duration-button" data-duration="60">60 Seconds</button>
+                <button class="duration-button button-primary" data-duration="30">30 Seconds</button>
+                <button class="duration-button button-primary" data-duration="60">60 Seconds</button>
             </div>
-            <button id="leaderboard-button">Leaderboard</button>
+            <button id="leaderboard-button" class="button-secondary">Leaderboard</button>
             <p>(Allow webcam access first)</p>
         </div>
 
@@ -33,16 +33,16 @@
             <div id="final-score">Final Score: 0</div>
             <div id="new-highscore-prompt" style="display: none;">
                 <p>New High Score!</p>
-                <button id="enter-name-button">Enter Name</button>
+                <button id="enter-name-button" class="button-primary">Enter Name</button>
             </div>
-            <button id="go-title-button">Back to Title</button>
+            <button id="go-title-button" class="button-secondary">Back to Title</button>
         </div>
 
         <div id="enter-name-screen" class="overlay" style="display: none;">
             <h2>New High Score!</h2>
             <p>Score: <span id="name-entry-score">0</span></p>
             <input type="text" id="name-input" placeholder="Enter Name (Max 10)" maxlength="10">
-            <button id="submit-score-button">Save Score</button>
+            <button id="submit-score-button" class="button-primary">Save Score</button>
         </div>
 
         <div id="leaderboard-screen" class="overlay" style="display: none;">
@@ -57,7 +57,7 @@
                     <ol id="lb-60"></ol>
                 </div>
             </div>
-            <button id="lb-back-button">Back to Title</button>
+            <button id="lb-back-button" class="button-secondary">Back to Title</button>
         </div>
     </div>
 
