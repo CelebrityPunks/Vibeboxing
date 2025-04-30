@@ -86,59 +86,77 @@ function showGameOverScreen() {
 
         const screenshotPreview = document.getElementById('score-screenshot-preview');
         if (screenshotPreview) screenshotPreview.style.display = 'none';
-        if(shareScoreButton) shareScoreButton.disabled = true;
+        if (shareScoreButton) shareScoreButton.disabled = true;
 
-        // --- Capture Screenshot using html2canvas ---
-        setTimeout(() => { // Delay ensures DOM updates (score text) are visible
-            console.log("Attempting html2canvas capture of document.body...");
-            // Revert target back to document.body
-            html2canvas(document.body, {
-                 useCORS: true, // Still needed for external resources
-                 logging: true, // Turn ON verbose logging for html2canvas
-                 backgroundColor: null, // Try to keep background transparent
-                 onclone: (clonedDoc) => { // Log during cloning process
-                    console.log("html2canvas: Document cloned.");
-                    // Attempt to hide the video element in the clone
-                    const clonedVideo = clonedDoc.getElementById('input_video');
-                    if (clonedVideo) {
-                        console.log("html2canvas: Hiding video element in cloned document.");
-                        clonedVideo.style.display = 'none'; // Hide the video in the version html2canvas renders
-                    } else {
-                        console.warn("html2canvas: Could not find video element in clone to hide.");
+        // --- Capture Stage 1: Three.js Canvas ---
+        let glCanvasDataUrl = null;
+        try {
+             // Ensure latest frame is rendered
+             if(renderer) renderer.render(scene, camera);
+             glCanvasDataUrl = renderer.domElement.toDataURL('image/png');
+             console.log("Three.js canvas captured.");
+        } catch (e) {
+            console.error("Failed to capture Three.js canvas:", e);
+            if(shareScoreButton) shareScoreButton.style.display = 'none';
+            return; // Stop if GL capture fails
+        }
+
+        // --- Capture Stage 2: UI Overlay using html2canvas ---
+        setTimeout(() => { // Delay allows score text update
+            console.log("Attempting html2canvas capture of UI overlay...");
+            html2canvas(gameOverScreen, { // Target only the UI overlay div
+                backgroundColor: null, // Make background transparent
+                useCORS: true, // Might still be needed for fonts/images in UI
+                logging: false
+            }).then(uiCanvas => {
+                console.log("UI overlay captured by html2canvas.");
+
+                // --- Combine Images ---
+                const finalCanvas = document.createElement('canvas');
+                finalCanvas.width = renderer.domElement.width;
+                finalCanvas.height = renderer.domElement.height;
+                const ctx = finalCanvas.getContext('2d');
+
+                const glImage = new Image();
+                glImage.onload = () => {
+                    console.log("Drawing Three.js background image...");
+                    ctx.drawImage(glImage, 0, 0); // Draw GL canvas capture first
+
+                    console.log("Drawing UI overlay image...");
+                    // Draw the UI canvas (captured by html2canvas) on top
+                    // Position it centered
+                    const uiX = (finalCanvas.width - uiCanvas.width) / 2;
+                    const uiY = (finalCanvas.height - uiCanvas.height) / 2;
+                    ctx.drawImage(uiCanvas, uiX, uiY);
+
+                    console.log("Generating final combined data URL...");
+                    try {
+                        screenshotDataUrl = finalCanvas.toDataURL('image/png'); // Final composite image
+                        console.log("Combined Data URL generated:", screenshotDataUrl.substring(0, 100) + "...");
+
+                        if (screenshotPreview) {
+                            screenshotPreview.src = screenshotDataUrl;
+                            screenshotPreview.style.display = 'block';
+                            console.log("Screenshot preview updated with combined image.");
+                        }
+                        if (shareScoreButton) shareScoreButton.disabled = false;
+
+                    } catch(e) {
+                         console.error("Error generating final Data URL:", e);
+                         if(shareScoreButton) shareScoreButton.style.display = 'none';
                     }
-                 }
-            }).then(canvas => {
-                console.log("html2canvas capture successful. Canvas obtained.");
-                try {
-                    screenshotDataUrl = canvas.toDataURL('image/png'); // Generate data URL
-                    console.log("Data URL generated successfully:", screenshotDataUrl.substring(0, 100) + "..."); // Log start of URL
-
-                    if (screenshotPreview) {
-                        screenshotPreview.src = screenshotDataUrl;
-                        screenshotPreview.style.display = 'block';
-                        console.log("Screenshot preview updated.");
-                    } else { console.warn("Screenshot preview element not found."); }
-
-                    if(shareScoreButton) shareScoreButton.disabled = false;
-
-                } catch (e) {
-                     // This catch block is often hit if the canvas becomes "tainted" due to CORS issues
-                    console.error("CRITICAL: Error generating Data URL from canvas - likely tainted.", e);
-                     screenshotDataUrl = null;
-                    if (screenshotPreview) screenshotPreview.style.display = 'none';
-                    if(shareScoreButton) shareScoreButton.style.display = 'none';
-                    alert("Error generating screenshot image. Security issue?");
-                }
+                };
+                 glImage.onerror = () => {
+                     console.error("Failed to load Three.js canvas capture into Image object.");
+                     if(shareScoreButton) shareScoreButton.style.display = 'none';
+                 };
+                glImage.src = glCanvasDataUrl; // Start loading the GL capture
 
             }).catch(e => {
-                 // This catches errors in the html2canvas process itself
-                console.error("html2canvas capture process failed:", e);
-                screenshotDataUrl = null;
-                if (screenshotPreview) screenshotPreview.style.display = 'none';
+                console.error("html2canvas capture of UI failed:", e);
                 if(shareScoreButton) shareScoreButton.style.display = 'none';
-                alert("Error creating screenshot image.");
             });
-        }, 200); // Keep delay
+        }, 150); // Shorter delay might be okay as we only wait for UI text
     }
 }
 
