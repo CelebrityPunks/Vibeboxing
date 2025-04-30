@@ -7,19 +7,16 @@ console.log("Script loaded.");
 const GameState = {
     TITLE: 'title',
     PLAYING: 'playing',
-    GAME_OVER: 'game_over',
-    LEADERBOARD: 'leaderboard', // New State
-    ENTER_NAME: 'enter_name'     // New State
+    GAME_OVER: 'game_over'
 };
 let currentGameState = GameState.TITLE;
 
 // --- UI Elements ---
-let uiContainer, titleScreen, hud, scoreElement, startButton,
-    timerElement, gameOverScreen, finalScoreElement, restartButton,
-    durationButtons, leaderboardButton,
-    leaderboardScreen, lbList30, lbList60, lbBackButton, // Leaderboard elements
-    enterNameScreen, nameEntryScoreElement, nameInput, submitScoreButton, // Name entry elements
-    newHighscorePrompt, goTitleButton; // Game over elements
+let uiContainer, titleScreen, hud, scoreElement,
+    timerElement, gameOverScreen, finalScoreElement,
+    durationButtons,
+    shareScoreButton,
+    goTitleButton;
 
 // Get the video element
 const videoElement = document.getElementById('input_video');
@@ -64,26 +61,19 @@ let remainingTime = 0; // In seconds
 let gameTimerInterval = null;
 let lastTickTime = 0;
 
-// Leaderboard Variables
-const LEADERBOARD_KEY = 'vibeboxingLeaderboard';
-const MAX_SCORES_PER_LB = 5;
-let highScores = { '30': [], '60': [] }; // { duration: [ { name: 'AAA', score: 10 }, ... ] }
+let screenshotDataUrl = null; // Store screenshot data URL
 
-// --- UI Management Functions ---
+// --- UI Management Functions
 function showTitleScreen() {
     if (titleScreen) titleScreen.style.display = 'flex';
     if (hud) hud.style.display = 'none';
     if (gameOverScreen) gameOverScreen.style.display = 'none';
-    if (leaderboardScreen) leaderboardScreen.style.display = 'none';
-    if (enterNameScreen) enterNameScreen.style.display = 'none';
 }
 
 function showHUD() {
     if (titleScreen) titleScreen.style.display = 'none';
-    if (hud) hud.style.display = 'flex'; // Use flex to align items
+    if (hud) hud.style.display = 'flex';
     if (gameOverScreen) gameOverScreen.style.display = 'none';
-    if (leaderboardScreen) leaderboardScreen.style.display = 'none';
-    if (enterNameScreen) enterNameScreen.style.display = 'none';
 }
 
 function showGameOverScreen() {
@@ -91,43 +81,30 @@ function showGameOverScreen() {
     if (hud) hud.style.display = 'none';
     if (gameOverScreen) {
         finalScoreElement.textContent = `Final Score: ${score}`;
-        // Show prompt only if it's a high score
-        if (isHighScore(score, selectedDuration)) {
-            newHighscorePrompt.style.display = 'block';
-            goTitleButton.style.display = 'none'; // Hide direct title button
-        } else {
-            newHighscorePrompt.style.display = 'none';
-            goTitleButton.style.display = 'block'; // Show direct title button
-        }
         gameOverScreen.style.display = 'flex';
-    }
-    if (leaderboardScreen) leaderboardScreen.style.display = 'none';
-    if (enterNameScreen) enterNameScreen.style.display = 'none';
-}
+        goTitleButton.style.display = 'block'; // Always show title button now
 
-function showEnterNameScreen() {
-    currentGameState = GameState.ENTER_NAME;
-    if (titleScreen) titleScreen.style.display = 'none';
-    if (hud) hud.style.display = 'none';
-    if (gameOverScreen) gameOverScreen.style.display = 'none';
-    if (leaderboardScreen) leaderboardScreen.style.display = 'none';
-    if (enterNameScreen) {
-        nameEntryScoreElement.textContent = score; // Show the score achieved
-        nameInput.value = ''; // Clear input field
-        enterNameScreen.style.display = 'flex';
-        nameInput.focus(); // Focus the input field
-    }
-}
+        // --- Capture Screenshot --- 
+        try {
+            // Ensure scene is rendered one last time with final score visible (might need adjustment)
+            // A small delay might help ensure the DOM is updated if score display lags
+            setTimeout(() => {
+                 if (renderer) {
+                    renderer.render(scene, camera); // Render the current frame
+                    screenshotDataUrl = renderer.domElement.toDataURL('image/png');
+                    console.log("Screenshot captured.");
+                    if(shareScoreButton) shareScoreButton.disabled = false; // Enable share button
+                 }
+            }, 100); // 100ms delay, adjust if needed
 
-function showLeaderboardScreen() {
-    currentGameState = GameState.LEADERBOARD;
-    loadHighScores(); // Load latest scores
-    populateLeaderboard(); // Display them
-    if (titleScreen) titleScreen.style.display = 'none';
-    if (hud) hud.style.display = 'none';
-    if (gameOverScreen) gameOverScreen.style.display = 'none';
-    if (enterNameScreen) enterNameScreen.style.display = 'none';
-    if (leaderboardScreen) leaderboardScreen.style.display = 'flex';
+            if(shareScoreButton) shareScoreButton.disabled = true; // Disable share button initially
+
+        } catch (e) {
+            console.error("Error capturing screenshot:", e);
+            screenshotDataUrl = null; // Invalidate on error
+            if(shareScoreButton) shareScoreButton.style.display = 'none'; // Hide button if capture fails
+        }
+    }
 }
 
 // --- Game Logic Functions ---
@@ -306,19 +283,8 @@ async function setupThreeJS() {
     finalScoreElement = document.getElementById('final-score');
     // Correctly assign goTitleButton using its ID
     goTitleButton = document.getElementById('go-title-button');
-    newHighscorePrompt = document.getElementById('new-highscore-prompt');
-    leaderboardButton = document.getElementById('leaderboard-button');
+    shareScoreButton = document.getElementById('share-score-button'); // Get share button
     durationButtons = document.querySelectorAll('.duration-button');
-    leaderboardScreen = document.getElementById('leaderboard-screen');
-    lbList30 = document.getElementById('lb-30');
-    lbList60 = document.getElementById('lb-60');
-    lbBackButton = document.getElementById('lb-back-button');
-    enterNameScreen = document.getElementById('enter-name-screen');
-    nameEntryScoreElement = document.getElementById('name-entry-score');
-    nameInput = document.getElementById('name-input');
-    submitScoreButton = document.getElementById('submit-score-button');
-    // Correctly get the "Enter Name" button from within the prompt div
-    const enterNameButton = document.getElementById('enter-name-button'); // Use this variable below
 
     // Add Event Listeners
     durationButtons.forEach(button => {
@@ -331,15 +297,7 @@ async function setupThreeJS() {
     if(goTitleButton) {
         goTitleButton.addEventListener('click', showTitleScreen);
     } else { console.error("Go Title button not found!"); }
-    // Use the 'enterNameButton' variable fetched above
-    if(enterNameButton) {
-        enterNameButton.addEventListener('click', showEnterNameScreen);
-    } else { console.error("Enter Name button not found!"); }
-    // ... other listeners remain the same ...
-    if(leaderboardButton) { leaderboardButton.addEventListener('click', showLeaderboardScreen); } else { console.error("Leaderboard button not found!"); }
-    if(lbBackButton) { lbBackButton.addEventListener('click', showTitleScreen); } else { console.error("Leaderboard Back button not found!"); }
-    if(submitScoreButton) { submitScoreButton.addEventListener('click', submitScore); } else { console.error("Submit Score button not found!"); }
-    if(nameInput) { nameInput.addEventListener('keypress', function (e) { if (e.key === 'Enter') { submitScore(); } }); }
+    if(shareScoreButton) { shareScoreButton.addEventListener('click', shareScoreAction); } else { console.error("Share Score button not found!"); }
 
     scene = new THREE.Scene();
     // --- Use video texture for background ---
@@ -415,7 +373,6 @@ async function setupThreeJS() {
 
     console.log("Three.js setup complete.");
     gameIsActive = true; // Allow hits after setup (TODO: Link to game state later)
-    loadHighScores(); // Load scores when the app starts
 }
 
 function onWindowResize() {
@@ -490,7 +447,7 @@ if (typeof Hands === 'undefined') {
 
     function onHandResults(results) {
         // Only process visuals if game is playing or in name entry (to show background)
-        const processVisuals = currentGameState === GameState.PLAYING || currentGameState === GameState.ENTER_NAME || currentGameState === GameState.LEADERBOARD || currentGameState === GameState.GAME_OVER;
+        const processVisuals = currentGameState === GameState.PLAYING;
 
         if (!processVisuals && currentGameState !== GameState.TITLE) {
             // If not processing visuals and not on title screen, something is wrong, maybe default to title
@@ -557,139 +514,116 @@ if (typeof Hands === 'undefined') {
         await setupThreeJS(); // Wait for assets and Three.js setup
         await setupCamera(); // Then setup camera
         console.log("Camera setup complete. MediaPipe loop starting.");
-        loadHighScores(); // Load scores on startup
-        showTitleScreen(); // Show title screen initially
-        sendFrameToMediaPipe(); // Start the MediaPipe loop
-    }
-
-    async function sendFrameToMediaPipe() {
-        // Ensure video is ready and has dimensions before sending
-        if (videoElement.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && videoElement.videoWidth > 0) {
-             try {
-                await hands.send({ image: videoElement });
-             } catch(error) {
-                 console.error("Error sending frame to MediaPipe:", error);
-                 // Optional: add logic to retry or stop if errors persist
-             }
-        }
-        requestAnimationFrame(sendFrameToMediaPipe);
+        animate(); // Start the animation loop
     }
 
     startApp(); // Start the application setup process
 }
 
-// --- Leaderboard Functions ---
-function loadHighScores() {
-    const storedScores = localStorage.getItem(LEADERBOARD_KEY);
-    if (storedScores) {
-        try {
-            const parsed = JSON.parse(storedScores);
-            // Basic validation
-            if (parsed && typeof parsed === 'object' && parsed['30'] && parsed['60']) {
-                highScores = parsed;
-                 // Ensure scores are sorted (might not be necessary if saved correctly)
-                highScores['30'].sort((a, b) => b.score - a.score);
-                highScores['60'].sort((a, b) => b.score - a.score);
-                console.log("High scores loaded from localStorage.");
-            } else {
-                 console.warn("Invalid leaderboard format in localStorage. Using defaults.");
-                 resetHighScores(); // Reset to default if format is wrong
-            }
-
-        } catch (e) {
-            console.error("Error parsing high scores from localStorage:", e);
-             resetHighScores(); // Reset to default on error
-        }
-    } else {
-        console.log("No high scores found in localStorage. Using defaults.");
-         resetHighScores(); // Initialize with defaults if none exist
-    }
-     // Ensure arrays exist and are capped
-    highScores['30'] = highScores['30']?.slice(0, MAX_SCORES_PER_LB) || [];
-    highScores['60'] = highScores['60']?.slice(0, MAX_SCORES_PER_LB) || [];
-}
-
-function saveHighScores() {
-    try {
-        localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(highScores));
-        console.log("High scores saved to localStorage.");
-    } catch (e) {
-        console.error("Error saving high scores to localStorage:", e);
-    }
-}
-
-function resetHighScores() {
-    highScores = { '30': [], '60': [] };
-    // Optionally save the reset state immediately
-    // saveHighScores();
-}
-
-function isHighScore(score, duration) {
-    const board = highScores[duration.toString()] || [];
-    if (board.length < MAX_SCORES_PER_LB) {
-        return true; // Qualifies if board isn't full
-    }
-    // Qualifies if score is higher than the lowest score on the full board
-    return score > board[MAX_SCORES_PER_LB - 1].score;
-}
-
-function addHighScore(name, score, duration) {
-    const boardKey = duration.toString();
-    const newEntry = { name: name || '???', score: score };
-
-    if (!highScores[boardKey]) {
-        highScores[boardKey] = [];
-    }
-
-    highScores[boardKey].push(newEntry);
-    highScores[boardKey].sort((a, b) => b.score - a.score); // Sort descending by score
-    highScores[boardKey] = highScores[boardKey].slice(0, MAX_SCORES_PER_LB); // Keep only top scores
-
-    saveHighScores();
-}
-
-function populateLeaderboard() {
-    populateList(lbList30, highScores['30']);
-    populateList(lbList60, highScores['60']);
-}
-
-function populateList(listElement, scores) {
-    if (!listElement) return;
-    listElement.innerHTML = ''; // Clear previous entries
-    if (!scores || scores.length === 0) {
-        listElement.innerHTML = '<li>No scores yet!</li>';
+// --- Share Score Functionality ---
+async function shareScoreAction() {
+    if (!screenshotDataUrl) {
+        console.error("No screenshot available to share.");
+        alert("Could not generate score image.");
         return;
     }
-    scores.forEach(entry => {
-        const li = document.createElement('li');
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'lb-name';
-        nameSpan.textContent = entry.name;
-        const scoreSpan = document.createElement('span');
-        scoreSpan.className = 'lb-score';
-        scoreSpan.textContent = entry.score;
-        li.appendChild(nameSpan);
-        li.appendChild(scoreSpan);
-        listElement.appendChild(li);
+
+    const shareText = `I scored ${score} in VibeBoxing (${selectedDuration}s)! Can you beat it? #VibeBoxing`;
+    const shareUrl = "https://vibeboxing.netlify.app";
+
+    try {
+        // Convert data URL to Blob for sharing
+        const response = await fetch(screenshotDataUrl);
+        const blob = await response.blob();
+        const file = new File([blob], `vibeboxing_score_${score}.png`, { type: 'image/png' });
+
+        const shareData = {
+            title: "VibeBoxing Score!",
+            text: shareText,
+            url: shareUrl, // Optional: include URL in text body too
+            files: [file]
+        };
+
+        if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+            console.log("Attempting Web Share API...");
+            await navigator.share(shareData);
+            console.log("Score shared successfully!");
+        } else {
+            console.log("Web Share API not supported or cannot share data, falling back to download.");
+            downloadScreenshot();
+        }
+    } catch (error) {
+        console.error("Error sharing score:", error);
+        // Fallback to download if sharing fails
+        alert("Sharing failed. Downloading score image instead.");
+        downloadScreenshot();
+    }
+}
+
+function downloadScreenshot() {
+    if (!screenshotDataUrl) return;
+    const link = document.createElement('a');
+    link.download = `vibeboxing_score_${score}.png`;
+    link.href = screenshotDataUrl;
+    link.click();
+    link.remove();
+    console.log("Screenshot download initiated.");
+}
+
+// --- Initialization ---
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log("DOM Content Loaded. Initializing...");
+
+    // Get UI elements
+    uiContainer = document.getElementById('ui-container');
+    titleScreen = document.getElementById('title-screen');
+    hud = document.getElementById('hud');
+    scoreElement = document.getElementById('score');
+    timerElement = document.getElementById('timer');
+    gameOverScreen = document.getElementById('game-over-screen');
+    finalScoreElement = document.getElementById('final-score');
+    goTitleButton = document.getElementById('go-title-button');
+    shareScoreButton = document.getElementById('share-score-button'); // Get share button
+
+    // Get duration buttons
+    durationButtons = titleScreen.querySelectorAll('.duration-button');
+
+    // Add event listeners for duration buttons
+    durationButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const duration = parseInt(button.dataset.duration, 10);
+            if (!isNaN(duration)) {
+                startGame(duration);
+            }
+        });
     });
-     // Add placeholders if list is shorter than max
-    for (let i = scores.length; i < MAX_SCORES_PER_LB; i++) {
-         const li = document.createElement('li');
-         li.innerHTML = `<span class="lb-name">---</span><span class="lb-score">--</span>`;
-         listElement.appendChild(li);
-    }
-}
 
-function submitScore() {
-    const name = nameInput.value.trim();
-    if (name) {
-        addHighScore(name, score, selectedDuration);
-        showLeaderboardScreen(); // Show leaderboard after submitting
-    } else {
-        alert("Please enter a name!");
+    // Add event listener for Back to Title button
+    if (goTitleButton) {
+        goTitleButton.addEventListener('click', () => {
+             currentGameState = GameState.TITLE;
+             showTitleScreen();
+        });
     }
-}
 
-// We will add Three.js initialization here next. 
-// We will add Three.js initialization here next. 
-// We will add Three.js initialization here next. 
+    // Add event listener for Share Score button
+    if (shareScoreButton) {
+        shareScoreButton.addEventListener('click', shareScoreAction);
+        shareScoreButton.disabled = true; // Disable initially until screenshot is ready
+    }
+
+    // Show title screen initially
+    showTitleScreen();
+
+    try {
+        await preloadAssets();
+        await setupCamera(); // Setup camera first to get video dimensions
+        await setupThreeJS(); // Then setup ThreeJS which depends on camera aspect
+        setupMediaPipe(); // Then setup MediaPipe
+        animate(); // Start the animation loop
+    } catch (error) {
+        console.error("Initialization failed:", error);
+        // TODO: Display a user-friendly error message on the screen
+        if(titleScreen) titleScreen.innerHTML = `<p style="color: red; font-size: 1.2em;">Initialization failed. Please ensure webcam access is allowed and refresh. Error: ${error.message}</p>`;
+    }
+}); 
