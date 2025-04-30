@@ -1,62 +1,60 @@
-# VibeBoxing Target Practice
+# VibeBoxing Web Edition
 
-    A simple webcam-based boxing target practice game built with Python, OpenCV, and MediaPipe. Hit the targets with your fists!
+A simple webcam-based boxing target practice game built with JavaScript, Three.js, and MediaPipe, running entirely in your browser! Hit the targets with your fists!
 
-![Gameplay Demo](placeholder.gif) // TODO: Replace with an actual GIF or screenshot
+![Gameplay Placeholder](assets/Face1.png) <!-- Replace with a screenshot/GIF later -->
 
 ## Features
 
-*   Real-time hand tracking using MediaPipe.
-*   Boxing glove overlays for visual feedback.
+*   Real-time hand tracking in the browser using MediaPipe JavaScript Solutions.
+*   Boxing glove overlays on a live webcam feed background using Three.js.
 *   Moving target with progressive visual "damage" based on hits.
-*   Timed rounds (30s, 60s).
-*   Persistent high score leaderboard for each time category.
-*   Title screen and leaderboard display.
+*   Selectable timed rounds (30s / 60s).
+*   Local high score leaderboard (stored in browser `localStorage`) for each time category.
+*   Interactive UI built with HTML and CSS.
 
 ## Technologies Used
 
-*   Python 3
-*   OpenCV (`opencv-python`) - For camera access, image manipulation, and display.
-*   MediaPipe (`mediapipe`) - For hand tracking.
-*   NumPy (`numpy`) - For numerical operations (used by OpenCV/MediaPipe and some calculations).
+*   **HTML5**
+*   **CSS3**
+*   **JavaScript (ES Modules)**
+*   **Three.js:** For 3D rendering (scene, camera, textures, geometry).
+*   **MediaPipe Hands (JavaScript):** For webcam hand tracking via the browser.
 
-## Setup
+## Running Locally
 
 1.  **Clone the repository:**
     ```bash
-    git clone <your-repo-url>
-    cd <repository-folder>
+    git clone https://github.com/CelebrityPunks/Vibeboxing.git
+    cd Vibeboxing
     ```
-2.  **Create a virtual environment (Recommended):**
+2.  **Serve the files:** Since the game uses ES Modules, you need to serve the files using a simple local web server. The easiest way is using Python's built-in server:
     ```bash
-    python3 -m venv venv
-    source venv/bin/activate # On Windows use `venv\Scripts\activate`
+    # Make sure you are in the Vibeboxing directory
+    python3 -m http.server
     ```
-3.  **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-4.  **Ensure Assets:** Make sure the `assets` folder containing all required images (`VibeBoxing.png`, `leftglove.png`, `rightglove.png`, `Face1.png` - `Face6.png`) is present in the project directory.
+    (If you don't have Python 3, you can use other tools like Node.js's `npx http-server` or the Live Server extension in VS Code).
+3.  **Open in Browser:** Open your web browser and navigate to `http://localhost:8000` (or the address provided by your server).
 
-## How to Run
-
-```bash
-python3 fruit_ninja_game.py
-```
-
-Grant camera permissions if prompted by your operating system.
+Grant camera permissions when prompted by your browser.
 
 ## How to Play
 
-1.  **Title Screen:** Press 'S' to Start or 'L' to view the Leaderboard.
-2.  **Select Duration:** Press '1' for 30 seconds or '2' for 60 seconds.
-3.  **Gameplay:**
-    *   Punch the target face with your fists (represented by gloves).
-    *   The target moves and shows progressive damage after every 5 hits.
-    *   The timer counts down.
-4.  **Results:** Your score and the high score are displayed.
-    *   If you get a high score, you'll be prompted to enter your name (max 10 chars, Enter to save).
-    *   Press 'R' to restart the same duration immediately.
-    *   Press Enter (or 'R') to return to the title screen.
-5.  **Leaderboard:** Shows the top 5 scores for each duration. Press 'B' to go back to the title screen.
-6.  **Quit:** Press 'Q' at almost any time to exit. 
+1.  **Title Screen:** Allow webcam access. Choose a duration (30 or 60 seconds) by clicking the button.
+2.  **Gameplay:**
+    *   The game starts immediately. Your webcam feed shows in the background.
+    *   Punch the target face that appears on screen with your fists (represented by glove images).
+    *   The target moves after each hit and shows progressive damage.
+    *   The timer counts down in the top-right corner.
+    *   The score updates in the top-left corner.
+3.  **Game Over:** When the timer reaches zero, the game ends.
+    *   Your final score is displayed.
+    *   If you achieved a high score (Top 5 for that duration), you'll be prompted to enter your name (max 10 chars). Click "Save Score" or press Enter.
+    *   You can click "Back to Title" or "Play Again" (if available).
+4.  **Leaderboard:** Click the "Leaderboard" button on the title screen to view the top 5 scores for each duration. Click "Back to Title" to return.
+
+## Deployment
+
+This project is a static web application and can be deployed to any static hosting service (like Netlify, Vercel, GitHub Pages, Cloudflare Pages, etc.). Ensure the host provides HTTPS, as webcam access requires a secure context.
+
+*(Link to deployed version can be added here later)* 
