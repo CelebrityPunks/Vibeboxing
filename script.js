@@ -16,6 +16,7 @@ let uiContainer, titleScreen, hud, scoreElement,
     timerElement, gameOverScreen, finalScoreElement,
     durationButtons,
     shareScoreButton,
+    downloadScoreButton,
     goTitleButton;
 
 // Get the video element
@@ -87,6 +88,7 @@ function showGameOverScreen() {
         const screenshotPreview = document.getElementById('score-screenshot-preview');
         if (screenshotPreview) screenshotPreview.style.display = 'none';
         if (shareScoreButton) shareScoreButton.disabled = true;
+        if (downloadScoreButton) downloadScoreButton.style.display = 'none';
 
         // --- Capture Stage 1: Three.js Canvas ---
         let glCanvasDataUrl = null;
@@ -337,6 +339,7 @@ async function setupThreeJS() {
     // Correctly assign goTitleButton using its ID
     goTitleButton = document.getElementById('go-title-button');
     shareScoreButton = document.getElementById('share-score-button'); // Get share button
+    downloadScoreButton = document.getElementById('download-score-button'); // Get the download button
     durationButtons = document.querySelectorAll('.duration-button');
 
     // Add Event Listeners
@@ -351,6 +354,9 @@ async function setupThreeJS() {
         goTitleButton.addEventListener('click', showTitleScreen);
     } else { console.error("Go Title button not found!"); }
     if(shareScoreButton) { shareScoreButton.addEventListener('click', shareScoreAction); } else { console.error("Share Score button not found!"); }
+    if(downloadScoreButton) {
+        downloadScoreButton.addEventListener('click', downloadScreenshot);
+    } else { console.error("Download Score button not found!"); }
 
     scene = new THREE.Scene();
     // --- Use video texture for background ---
@@ -573,47 +579,35 @@ async function sendFrameToMediaPipe() {
 async function shareScoreAction() {
     if (!screenshotDataUrl) { console.error("No screenshot available."); alert("Could not generate score image."); return; }
 
+    // Hide download button in case it was shown previously
+    if (downloadScoreButton) downloadScoreButton.style.display = 'none';
+
     try {
         const response = await fetch(screenshotDataUrl);
         const blob = await response.blob();
         const file = new File([blob], `vibeboxing_score_${score}.png`, { type: 'image/png' });
+        const shareData = { title: "VibeBoxing Score!", files: [file], url: "https://vibeboxing.netlify.app" };
 
-        // Share data including file and URL
-        const shareData = {
-            title: "VibeBoxing Score!", // Add title back for context
-            files: [file],
-            // text: `I scored ${score}...`, // Still keeping text out unless requested
-            url: "https://vibeboxing.netlify.app" // Add URL back
-        };
-
-        // Check if both files and URL can be shared (best effort check)
-        // Note: Actual support varies by platform/app
         if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
              console.log("Attempting Web Share API with image file and URL...");
              await navigator.share(shareData);
              console.log("Shared image and URL successfully!");
-        }
-        // Fallback 1: Try sharing file only if combined share failed/not supported
-        else if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        } else if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
              console.log("Cannot share file and URL together, attempting file only...");
              await navigator.share({ files: [file] });
              console.log("Shared image file only successfully!");
-        }
-        // Fallback 2: Share URL only if file sharing isn't supported at all
-         else if (navigator.share) {
-            console.log("Cannot share file, attempting to share URL only...");
-            await navigator.share({ title: shareData.title, url: shareData.url });
-            console.log("Shared URL only successfully.");
-         }
-        // Fallback 3: Download
-        else {
-            console.log("Web Share API not supported, falling back to download.");
-            downloadScreenshot();
+        } else if (navigator.share) {
+             console.log("Cannot share file, attempting to share URL only...");
+             await navigator.share({ title: shareData.title, url: shareData.url });
+             console.log("Shared URL only successfully.");
+        } else {
+            console.log("Web Share API not supported, showing download button.");
+            if (downloadScoreButton) downloadScoreButton.style.display = 'block';
         }
     } catch (error) {
-        console.error("Error sharing score:", error); // Generalize error message
-        alert("Sharing failed. Downloading score image instead.");
-        downloadScreenshot();
+        console.error("Error sharing score:", error);
+        alert("Sharing failed. You can download the image instead.");
+        if (downloadScoreButton) downloadScoreButton.style.display = 'block';
     }
 }
 
@@ -640,7 +634,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     gameOverScreen = document.getElementById('game-over-screen');
     finalScoreElement = document.getElementById('final-score');
     goTitleButton = document.getElementById('go-title-button');
-    shareScoreButton = document.getElementById('share-score-button'); // Get share button
+    shareScoreButton = document.getElementById('share-score-button');
+    downloadScoreButton = document.getElementById('download-score-button');
 
     // Get duration buttons
     durationButtons = titleScreen.querySelectorAll('.duration-button');
@@ -668,6 +663,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         shareScoreButton.addEventListener('click', shareScoreAction);
         shareScoreButton.disabled = true; // Disable initially until screenshot is ready
     }
+
+    // Add event listener for Download Score button
+    if (downloadScoreButton) {
+        downloadScoreButton.addEventListener('click', downloadScreenshot);
+    } else { console.error("Download Score button not found!"); }
 
     // Show title screen initially
     showTitleScreen();

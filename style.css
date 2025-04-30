@@ -132,7 +132,7 @@ canvas {
 #go-title-button {
      /* Uses .button-secondary styles */
      font-size: 1.2em;
-     margin-top: 0; /* Remove top margin if share button exists */
+     margin-top: 0; /* Keep margin-top 0 */
 }
 
 /* Styles for duration selection */
@@ -375,4 +375,12 @@ canvas {
 }
 #leaderboard-screen #lb-back-button:hover {
     background-color: #777;
+}
+
+/* Style for the Download button */
+#download-score-button {
+     /* Uses .button-secondary styles */
+    font-size: 1.1em; /* Slightly smaller */
+    padding: 10px 20px;
+    margin-bottom: 10px; /* Space between Download and Back buttons */
 } 
