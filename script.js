@@ -353,7 +353,10 @@ async function setupThreeJS() {
     camera.position.z = 6; // Pull back slightly more for wider view?
 
     // Renderer
-    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        preserveDrawingBuffer: true
+    });
     renderer.setSize(window.innerWidth, window.innerHeight);
     // --- SET RENDERER OUTPUT COLOR SPACE ---
     renderer.outputColorSpace = THREE.SRGBColorSpace; // Match texture color space for output
@@ -385,7 +388,7 @@ async function setupThreeJS() {
     // Create Fist Visuals (Glove Planes)
     const gloveGeometry = new THREE.PlaneGeometry(GLOVE_SIZE, GLOVE_SIZE);
     // Use basic materials initially, textures assigned in onHandResults
-    const defaultGloveMaterial = new THREE.MeshBasicMaterial({ color: 0x888888, transparent: true, side: THREE.DoubleSide });
+    const defaultGloveMaterial = new THREE.MeshBasicMaterial({ color: 0x888888, transparent: true, side: THREE.DoubleSide, map: null });
     for (let i = 0; i < 2; i++) {
         // Clone material so each glove can have a different texture later
         const gloveMaterial = defaultGloveMaterial.clone();
@@ -402,7 +405,7 @@ async function setupThreeJS() {
     // Start animation loop
     animate();
 
-    console.log("Three.js setup complete.");
+    console.log("Three.js setup complete (with preserveDrawingBuffer).");
     gameIsActive = true; // Allow hits after setup (TODO: Link to game state later)
 }
 
