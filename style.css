@@ -21,7 +21,7 @@ canvas {
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 100vh; /* Use viewport height */
     z-index: 2; /* Ensure UI is on top */
     pointer-events: none; /* Allow clicks to pass through empty areas */
 }
@@ -31,13 +31,14 @@ canvas {
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 100vh; /* Use viewport height */
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    justify-content: center; /* Default vertical centering */
+    align-items: center; /* Default horizontal centering */
     text-align: center;
     background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
+    box-sizing: border-box; /* Include padding in height/width */
 }
 
 #title-screen h1 {
@@ -74,13 +75,22 @@ canvas {
 
 
 #hud {
-    justify-content: space-between; /* Space out score and timer */
-    align-items: flex-start; /* Align items to the top */
-    background-color: transparent; /* HUD has no background */
+    background-color: transparent;
     padding: 20px;
     font-size: 1.8em;
     text-shadow: 1px 1px 3px #000;
-    pointer-events: none; /* Don't block clicks */
+    pointer-events: none;
+    /* Override overlay centering */
+    display: flex;
+    flex-direction: row; /* Arrange horizontally */
+    justify-content: space-between; /* Space items apart */
+    align-items: flex-start; /* Align to top */
+    width: 100%; /* Ensure it spans width */
+    height: auto; /* Let content define height */
+    position: absolute; /* Ensure it stays within #ui-container bounds */
+    top: 0;
+    left: 0;
+    /* Removed background color from .overlay */
 }
 
 #score {
