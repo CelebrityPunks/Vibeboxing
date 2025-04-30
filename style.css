@@ -39,12 +39,20 @@ canvas {
     text-align: center;
     background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
     box-sizing: border-box; /* Include padding in height/width */
+    padding: 20px; /* Add padding to keep content from edges */
+    overflow-y: auto; /* Add scroll if content overflows on small screens */
+}
+
+#title-screen {
+    justify-content: center !important;
+    align-items: center !important;
 }
 
 #title-image {
     max-width: 60%; /* Reduced size */
     height: auto;
-    margin-bottom: 25px;
+    margin-bottom: 25px; /* Space below image */
+    flex-shrink: 0; /* Prevent image from shrinking too much */
 }
 
 #title-screen button {
@@ -67,9 +75,10 @@ canvas {
 }
 
 #title-screen p {
-    margin-top: 15px;
+    margin-top: 20px; /* Space above help text */
     font-size: 0.9em;
     color: #ccc;
+    flex-shrink: 0;
 }
 
 
@@ -89,7 +98,7 @@ canvas {
     position: absolute; /* Ensure it stays within #ui-container bounds */
     top: 0;
     left: 0;
-    /* Removed background color from .overlay */
+    box-sizing: border-box;
 }
 
 #score {
@@ -132,9 +141,11 @@ canvas {
 
 /* Styles for duration selection */
 #duration-selection {
-    margin-bottom: 20px;
+    margin-bottom: 15px; /* Space below duration buttons */
+    margin-top: 0; /* Remove extra top margin if any */
     display: flex;
-    gap: 20px; /* Space between buttons */
+    gap: 20px;
+    flex-shrink: 0;
 }
 
 #title-screen button.duration-button { /* Target specific buttons */
@@ -158,20 +169,9 @@ canvas {
 
 /* Add spacing for leaderboard button */
 #title-screen #leaderboard-button {
-    margin-top: 15px;
     padding: 10px 20px;
     font-size: 1.1em;
-    background-color: #555;
-    color: #eee;
-    pointer-events: auto;
-    font-family: 'Exo 2', sans-serif;
-    cursor: pointer;
-    border: none;
-    border-radius: 5px;
-    /* Add hover/active effects if desired */
-}
-#title-screen #leaderboard-button:hover {
-    background-color: #777;
+    margin-top: 15px; /* Space between duration and leaderboard */
 }
 
 
@@ -184,8 +184,8 @@ canvas {
 #new-highscore-prompt button, #go-title-button {
     padding: 10px 20px;
     font-size: 1.2em;
-    margin-top: 10px;
-     font-family: 'Exo 2', sans-serif;
+    margin-top: 15px; /* Space above button */
+    font-family: 'Exo 2', sans-serif;
     cursor: pointer;
     background-color: #00ffff;
     color: #111;
@@ -220,7 +220,7 @@ canvas {
 #enter-name-screen button {
     padding: 12px 25px;
     font-size: 1.3em;
-     font-family: 'Exo 2', sans-serif;
+    font-family: 'Exo 2', sans-serif;
     cursor: pointer;
     background-color: #00ff00;
     color: #111;
@@ -228,6 +228,7 @@ canvas {
     border-radius: 5px;
     box-shadow: 0 4px 8px rgba(0, 255, 0, 0.4);
     pointer-events: auto;
+    margin-top: 15px;
 }
 #enter-name-screen button:hover {
     background-color: #00dd00;
@@ -285,15 +286,16 @@ canvas {
     color: #00ff00;
 }
 #leaderboard-screen #lb-back-button {
-     padding: 10px 20px;
+    padding: 10px 20px;
     font-size: 1.1em;
-     font-family: 'Exo 2', sans-serif;
+    font-family: 'Exo 2', sans-serif;
     cursor: pointer;
     background-color: #555;
     color: #eee;
     border: none;
     border-radius: 5px;
     pointer-events: auto;
+    margin-top: 20px; /* Space above back button */
 }
 #leaderboard-screen #lb-back-button:hover {
     background-color: #777;
@@ -301,71 +303,74 @@ canvas {
 
 /* --- Base Button Styles --- */
 .button-primary, .button-secondary {
-    padding: 12px 25px; /* Default padding */
-    font-size: 1.3em; /* Default font size */
+    padding: 12px 25px;
+    font-size: 1.3em;
     font-family: 'Exo 2', sans-serif;
     cursor: pointer;
     border: none;
     border-radius: 5px;
     transition: background-color 0.2s, box-shadow 0.2s, transform 0.1s;
-    pointer-events: auto; /* Make sure buttons are clickable */
-    margin-top: 10px; /* Add some default top margin */
-    min-width: 150px; /* Ensure minimum width */
+    pointer-events: auto;
+    min-width: 150px;
     text-align: center;
+    flex-shrink: 0; /* Prevent buttons shrinking */
 }
 .button-primary:active, .button-secondary:active {
-    transform: translateY(1px); /* Simple pressed effect */
+    transform: translateY(1px);
 }
 
-/* --- Primary Button (Cyan) --- */
+/* --- Primary Button (Orange/Yellow Theme) with !important --- */
 .button-primary {
-    background-color: #00ffff;
-    color: #111;
-    box-shadow: 0 4px 8px rgba(0, 255, 255, 0.4);
+    background-color: #E8751A !important; /* Orange-Red + !important */
+    color: #FDF5E6 !important; /* Off-white + !important */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 .button-primary:hover {
-    background-color: #00dddd;
-    box-shadow: 0 6px 12px rgba(0, 255, 255, 0.6);
+    background-color: #F7C34A !important; /* Yellow + !important */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
 }
 
-/* --- Secondary Button (Dark Gray) --- */
+/* --- Secondary Button (Brown Theme) with !important --- */
 .button-secondary {
-    background-color: #555;
-    color: #eee;
+    background-color: #4A2F1C !important; /* Dark Brown + !important */
+    color: #FDF5E6 !important; /* Off-white + !important */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 .button-secondary:hover {
-    background-color: #777;
+    background-color: #6d452a !important; /* Lighter brown + !important */
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
 }
 
 /* --- Specific Button Adjustments --- */
 
-/* Duration buttons (covered by .button-primary defaults) */
-
-/* Leaderboard button - Make slightly smaller */
+/* Leaderboard button */
 #leaderboard-button {
     padding: 10px 20px;
     font-size: 1.1em;
-    margin-top: 20px; /* More space after duration */
+    margin-top: 15px; /* Space between duration and leaderboard */
 }
 
 /* Game Over Screen buttons */
-#new-highscore-prompt button, #go-title-button {
+#new-highscore-prompt button {
     font-size: 1.2em;
-    /* Base styles handled by primary/secondary classes */
+    margin-top: 15px; /* Space above button */
+}
+#go-title-button {
+     font-size: 1.2em;
+     margin-top: 15px; /* Space above button */
 }
 
 /* Enter Name Screen button */
 #enter-name-screen button {
-     /* Base styles handled by primary class */
+     /* Uses primary defaults */
+     margin-top: 15px;
 }
 
-/* Leaderboard Back button - Make smaller */
+/* Leaderboard Back button */
 #leaderboard-screen #lb-back-button {
     padding: 10px 20px;
     font-size: 1.1em;
-     /* Base styles handled by secondary class */
+    margin-top: 20px; /* Space above back button */
 }
 
 
