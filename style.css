@@ -49,10 +49,10 @@ canvas {
 }
 
 #title-image {
-    max-width: 60%; /* Reduced size */
+    max-width: 50%; /* Reduced size further */
     height: auto;
-    margin-bottom: 25px; /* Space below image */
-    flex-shrink: 0; /* Prevent image from shrinking too much */
+    margin-bottom: 20px; /* Slightly reduced space below image */
+    flex-shrink: 0;
 }
 
 #title-screen button {
@@ -75,7 +75,7 @@ canvas {
 }
 
 #title-screen p {
-    margin-top: 20px; /* Space above help text */
+    margin-top: 15px; /* Reduced space above help text */
     font-size: 0.9em;
     color: #ccc;
     flex-shrink: 0;
@@ -141,8 +141,8 @@ canvas {
 
 /* Styles for duration selection */
 #duration-selection {
-    margin-bottom: 15px; /* Space below duration buttons */
-    margin-top: 0; /* Remove extra top margin if any */
+    margin-bottom: 15px; /* Keep this */
+    margin-top: 0;
     display: flex;
     gap: 20px;
     flex-shrink: 0;
@@ -168,10 +168,11 @@ canvas {
 }
 
 /* Add spacing for leaderboard button */
-#title-screen #leaderboard-button {
+#leaderboard-button {
     padding: 10px 20px;
     font-size: 1.1em;
-    margin-top: 15px; /* Space between duration and leaderboard */
+    margin-top: 15px; /* Keep this */
+    flex-shrink: 0; /* Ensure button doesn't shrink */
 }
 
 
