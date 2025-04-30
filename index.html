@@ -19,6 +19,7 @@
                 <button class="duration-button" data-duration="30">30 Seconds</button>
                 <button class="duration-button" data-duration="60">60 Seconds</button>
             </div>
+            <button id="leaderboard-button">Leaderboard</button>
             <p>(Allow webcam access first)</p>
         </div>
 
@@ -30,7 +31,33 @@
         <div id="game-over-screen" class="overlay" style="display: none;">
             <h2>Time's Up!</h2>
             <div id="final-score">Final Score: 0</div>
-            <button id="restart-button">Play Again</button>
+            <div id="new-highscore-prompt" style="display: none;">
+                <p>New High Score!</p>
+                <button id="enter-name-button">Enter Name</button>
+            </div>
+            <button id="go-title-button">Back to Title</button>
+        </div>
+
+        <div id="enter-name-screen" class="overlay" style="display: none;">
+            <h2>New High Score!</h2>
+            <p>Score: <span id="name-entry-score">0</span></p>
+            <input type="text" id="name-input" placeholder="Enter Name (Max 10)" maxlength="10">
+            <button id="submit-score-button">Save Score</button>
+        </div>
+
+        <div id="leaderboard-screen" class="overlay" style="display: none;">
+            <h2>Leaderboard</h2>
+            <div class="leaderboard-columns">
+                <div class="leaderboard-column">
+                    <h3>30 Seconds</h3>
+                    <ol id="lb-30"></ol>
+                </div>
+                <div class="leaderboard-column">
+                    <h3>60 Seconds</h3>
+                    <ol id="lb-60"></ol>
+                </div>
+            </div>
+            <button id="lb-back-button">Back to Title</button>
         </div>
     </div>
 

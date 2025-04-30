@@ -7,14 +7,19 @@ console.log("Script loaded.");
 const GameState = {
     TITLE: 'title',
     PLAYING: 'playing',
-    GAME_OVER: 'game_over'
+    GAME_OVER: 'game_over',
+    LEADERBOARD: 'leaderboard', // New State
+    ENTER_NAME: 'enter_name'     // New State
 };
 let currentGameState = GameState.TITLE;
 
 // --- UI Elements ---
 let uiContainer, titleScreen, hud, scoreElement, startButton,
-    timerElement, gameOverScreen, finalScoreElement, restartButton;
-let durationButtons; // For 30/60 sec buttons
+    timerElement, gameOverScreen, finalScoreElement, restartButton,
+    durationButtons, leaderboardButton,
+    leaderboardScreen, lbList30, lbList60, lbBackButton, // Leaderboard elements
+    enterNameScreen, nameEntryScoreElement, nameInput, submitScoreButton, // Name entry elements
+    newHighscorePrompt, goTitleButton; // Game over elements
 
 // Get the video element
 const videoElement = document.getElementById('input_video');
@@ -59,17 +64,26 @@ let remainingTime = 0; // In seconds
 let gameTimerInterval = null;
 let lastTickTime = 0;
 
+// Leaderboard Variables
+const LEADERBOARD_KEY = 'vibeboxingLeaderboard';
+const MAX_SCORES_PER_LB = 5;
+let highScores = { '30': [], '60': [] }; // { duration: [ { name: 'AAA', score: 10 }, ... ] }
+
 // --- UI Management Functions ---
 function showTitleScreen() {
     if (titleScreen) titleScreen.style.display = 'flex';
     if (hud) hud.style.display = 'none';
     if (gameOverScreen) gameOverScreen.style.display = 'none';
+    if (leaderboardScreen) leaderboardScreen.style.display = 'none';
+    if (enterNameScreen) enterNameScreen.style.display = 'none';
 }
 
 function showHUD() {
     if (titleScreen) titleScreen.style.display = 'none';
     if (hud) hud.style.display = 'flex'; // Use flex to align items
     if (gameOverScreen) gameOverScreen.style.display = 'none';
+    if (leaderboardScreen) leaderboardScreen.style.display = 'none';
+    if (enterNameScreen) enterNameScreen.style.display = 'none';
 }
 
 function showGameOverScreen() {
@@ -77,8 +91,43 @@ function showGameOverScreen() {
     if (hud) hud.style.display = 'none';
     if (gameOverScreen) {
         finalScoreElement.textContent = `Final Score: ${score}`;
+        // Show prompt only if it's a high score
+        if (isHighScore(score, selectedDuration)) {
+            newHighscorePrompt.style.display = 'block';
+            goTitleButton.style.display = 'none'; // Hide direct title button
+        } else {
+            newHighscorePrompt.style.display = 'none';
+            goTitleButton.style.display = 'block'; // Show direct title button
+        }
         gameOverScreen.style.display = 'flex';
     }
+    if (leaderboardScreen) leaderboardScreen.style.display = 'none';
+    if (enterNameScreen) enterNameScreen.style.display = 'none';
+}
+
+function showEnterNameScreen() {
+    currentGameState = GameState.ENTER_NAME;
+    if (titleScreen) titleScreen.style.display = 'none';
+    if (hud) hud.style.display = 'none';
+    if (gameOverScreen) gameOverScreen.style.display = 'none';
+    if (leaderboardScreen) leaderboardScreen.style.display = 'none';
+    if (enterNameScreen) {
+        nameEntryScoreElement.textContent = score; // Show the score achieved
+        nameInput.value = ''; // Clear input field
+        enterNameScreen.style.display = 'flex';
+        nameInput.focus(); // Focus the input field
+    }
+}
+
+function showLeaderboardScreen() {
+    currentGameState = GameState.LEADERBOARD;
+    loadHighScores(); // Load latest scores
+    populateLeaderboard(); // Display them
+    if (titleScreen) titleScreen.style.display = 'none';
+    if (hud) hud.style.display = 'none';
+    if (gameOverScreen) gameOverScreen.style.display = 'none';
+    if (enterNameScreen) enterNameScreen.style.display = 'none';
+    if (leaderboardScreen) leaderboardScreen.style.display = 'flex';
 }
 
 // --- Game Logic Functions ---
@@ -257,6 +306,17 @@ async function setupThreeJS() {
     finalScoreElement = document.getElementById('final-score');
     restartButton = document.getElementById('restart-button');
     durationButtons = document.querySelectorAll('.duration-button'); // Get duration buttons
+    leaderboardButton = document.getElementById('leaderboard-button');
+    leaderboardScreen = document.getElementById('leaderboard-screen');
+    lbList30 = document.getElementById('lb-30');
+    lbList60 = document.getElementById('lb-60');
+    lbBackButton = document.getElementById('lb-back-button');
+    enterNameScreen = document.getElementById('enter-name-screen');
+    nameEntryScoreElement = document.getElementById('name-entry-score');
+    nameInput = document.getElementById('name-input');
+    submitScoreButton = document.getElementById('submit-score-button');
+    goTitleButton = document.getElementById('go-title-button');
+    newHighscorePrompt = document.getElementById('new-highscore-prompt');
 
     // Add Duration Button Listeners
     durationButtons.forEach(button => {
@@ -269,6 +329,35 @@ async function setupThreeJS() {
     // Add Restart Button Listener
     if(restartButton) {
         restartButton.addEventListener('click', showTitleScreen); // Go back to title for now
+    }
+
+    // Add Leaderboard Button Listener
+    if(leaderboardButton) {
+        leaderboardButton.addEventListener('click', showLeaderboardScreen);
+    }
+
+    // Add Enter Name Button Listener
+    if(enterNameButton) {
+        enterNameButton.addEventListener('click', showEnterNameScreen);
+    }
+
+    // Add Back Button Listener
+    if(lbBackButton) {
+        lbBackButton.addEventListener('click', showTitleScreen);
+    }
+
+    // Add Submit Score Listener
+    if(submitScoreButton) {
+        submitScoreButton.addEventListener('click', submitScore);
+    }
+
+    // Allow submitting name with Enter key
+    if(nameInput) {
+        nameInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                submitScore();
+            }
+        });
     }
 
     scene = new THREE.Scene();
@@ -345,6 +434,7 @@ async function setupThreeJS() {
 
     console.log("Three.js setup complete.");
     gameIsActive = true; // Allow hits after setup (TODO: Link to game state later)
+    loadHighScores(); // Load scores when the app starts
 }
 
 function onWindowResize() {
@@ -418,159 +508,75 @@ if (typeof Hands === 'undefined') {
     hands.onResults(onHandResults);
 
     function onHandResults(results) {
-        // Only process if game is playing
-        if (currentGameState !== GameState.PLAYING) {
-             // Hide fists if not playing
-             if(fistMeshes) fistMeshes.forEach(mesh => mesh.visible = false);
-             // Optionally hide target too if needed, or handle in startGame/endGame
-             if(targetMesh) targetMesh.visible = false;
-             return;
-        }
-        if(targetMesh) targetMesh.visible = true; // Ensure target is visible when playing
+        // Only process visuals if game is playing or in name entry (to show background)
+        const processVisuals = currentGameState === GameState.PLAYING || currentGameState === GameState.ENTER_NAME || currentGameState === GameState.LEADERBOARD || currentGameState === GameState.GAME_OVER;
 
-        let visibleLandmarkCount = 0;
-        let visibleFistCount = 0;
-        const detectedHands = []; // Store detected hand data temporarily
-
-        // --- 1. Process Hand Data ---
-        if (results.multiHandLandmarks) {
-            for (let handIndex = 0; handIndex < results.multiHandLandmarks.length; handIndex++) {
-                const landmarks = results.multiHandLandmarks[handIndex];
-                detectedHands[handIndex] = { landmarks: landmarks, avgX: 0, avgY: 0, avgZ: 0, mcpCount: 0 };
-
-                // Calculate Average MCP Position
-                const mcpIndices = [5, 9, 13, 17];
-                for (const index of mcpIndices) {
-                    if (landmarks[index]) {
-                        detectedHands[handIndex].avgX += landmarks[index].x;
-                        detectedHands[handIndex].avgY += landmarks[index].y;
-                        detectedHands[handIndex].avgZ += landmarks[index].z;
-                        detectedHands[handIndex].mcpCount++;
-                    }
-                }
-
-                if (detectedHands[handIndex].mcpCount > 0) {
-                    detectedHands[handIndex].avgX /= detectedHands[handIndex].mcpCount;
-                    detectedHands[handIndex].avgY /= detectedHands[handIndex].mcpCount;
-                    detectedHands[handIndex].avgZ /= detectedHands[handIndex].mcpCount;
-                }
-
-                // Update Landmark Spheres (Optional visualization - includes X flip)
-                for (let landmarkIndex = 0; landmarkIndex < landmarks.length; landmarkIndex++) {
-                    const landmark = landmarks[landmarkIndex];
-                    const sphereIndex = handIndex * 21 + landmarkIndex;
-                    if (sphereIndex < landmarkSpheres.length) {
-                        const sphere = landmarkSpheres[sphereIndex];
-                        const threeX = -(landmark.x - 0.5) * WORLD_WIDTH;
-                        const threeY = -(landmark.y - 0.5) * WORLD_HEIGHT;
-                        const threeZ = -landmark.z * DEPTH_SCALE;
-                        sphere.position.set(threeX, threeY, threeZ);
-                        sphere.visible = false; // Keep hidden by default
-                        visibleLandmarkCount++;
-                    }
-                }
-            } // End loop through hands
+        if (!processVisuals && currentGameState !== GameState.TITLE) {
+            // If not processing visuals and not on title screen, something is wrong, maybe default to title
+            // showTitleScreen(); // Avoid infinite loop if title screen itself fails
+            return;
         }
 
-        // --- 2. Determine Left/Right and Update Glove Meshes ---
-        // Determine which detected hand is physically Left vs Right
-        let physicalLeftHandDetectedIndex = -1;
-        let physicalRightHandDetectedIndex = -1;
+         // Hide/show 3D elements based on state
+        const show3D = currentGameState === GameState.PLAYING;
+        if(targetMesh) targetMesh.visible = show3D;
+        if(fistMeshes) fistMeshes.forEach(mesh => mesh.visible = show3D);
 
-        if (detectedHands.length === 1 && detectedHands[0].mcpCount > 0) {
-            // If only one hand, ASSUME it's the right hand based on common use cases.
-            // This is imperfect but a starting point. A better way might involve checking handedness result if available.
-            physicalRightHandDetectedIndex = 0;
-        } else if (detectedHands.length === 2 && detectedHands[0].mcpCount > 0 && detectedHands[1].mcpCount > 0) {
-            // Compare original MediaPipe X coordinates: smaller X is user's right hand.
-            if (detectedHands[0].avgX < detectedHands[1].avgX) {
-                physicalRightHandDetectedIndex = 0;
-                physicalLeftHandDetectedIndex = 1;
-            } else {
-                physicalRightHandDetectedIndex = 1;
-                physicalLeftHandDetectedIndex = 0;
-            }
+
+        if (processVisuals) { // Only update positions if needed
+            let visibleLandmarkCount = 0; let visibleFistCount = 0; const detectedHands = [];
+            if (results.multiHandLandmarks) { for (let handIndex = 0; handIndex < results.multiHandLandmarks.length; handIndex++) { const landmarks = results.multiHandLandmarks[handIndex]; detectedHands[handIndex] = { landmarks: landmarks, avgX: 0, avgY: 0, avgZ: 0, mcpCount: 0 }; const mcpIndices = [5, 9, 13, 17]; for (const index of mcpIndices) { if (landmarks[index]) { detectedHands[handIndex].avgX += landmarks[index].x; detectedHands[handIndex].avgY += landmarks[index].y; detectedHands[handIndex].avgZ += landmarks[index].z; detectedHands[handIndex].mcpCount++; } } if (detectedHands[handIndex].mcpCount > 0) { detectedHands[handIndex].avgX /= detectedHands[handIndex].mcpCount; detectedHands[handIndex].avgY /= detectedHands[handIndex].mcpCount; detectedHands[handIndex].avgZ /= detectedHands[handIndex].mcpCount; } for (let landmarkIndex = 0; landmarkIndex < landmarks.length; landmarkIndex++) { const landmark = landmarks[landmarkIndex]; const sphereIndex = handIndex * 21 + landmarkIndex; if (sphereIndex < landmarkSpheres.length) { const sphere = landmarkSpheres[sphereIndex]; const threeX = -(landmark.x - 0.5) * WORLD_WIDTH; const threeY = -(landmark.y - 0.5) * WORLD_HEIGHT; const threeZ = -landmark.z * DEPTH_SCALE; sphere.position.set(threeX, threeY, threeZ); sphere.visible = false; visibleLandmarkCount++; } } } }
+            let physicalLeftHandDetectedIndex = -1; let physicalRightHandDetectedIndex = -1; if (detectedHands.length === 1 && detectedHands[0].mcpCount > 0) { physicalRightHandDetectedIndex = 0; } else if (detectedHands.length === 2 && detectedHands[0].mcpCount > 0 && detectedHands[1].mcpCount > 0) { if (detectedHands[0].avgX < detectedHands[1].avgX) { physicalRightHandDetectedIndex = 0; physicalLeftHandDetectedIndex = 1; } else { physicalRightHandDetectedIndex = 1; physicalLeftHandDetectedIndex = 0; } } for (let i = 0; i < 2; i++) { const fistMesh = fistMeshes[i]; let handData = null; let texture = null; if (i === 0 && physicalRightHandDetectedIndex !== -1) { handData = detectedHands[physicalRightHandDetectedIndex]; texture = gloveTextures.right; } else if (i === 1 && physicalLeftHandDetectedIndex !== -1) { handData = detectedHands[physicalLeftHandDetectedIndex]; texture = gloveTextures.left; } if (handData && handData.mcpCount > 0 && texture ) { const fistX = -(handData.avgX - 0.5) * WORLD_WIDTH; const fistY = -(handData.avgY - 0.5) * WORLD_HEIGHT; const fistZ = -handData.avgZ * DEPTH_SCALE + 0.1; fistMesh.position.set(fistX, fistY, fistZ); if (fistMesh.material.map !== texture) { fistMesh.material.map = texture; fistMesh.material.needsUpdate = true; } fistMesh.visible = show3D; // Only show if playing
+                 if(show3D) visibleFistCount++;
+             } else {
+                 fistMesh.visible = false;
+             }
+         }
+             // Hide unused landmark spheres
+            for (let i = 0; i < landmarkSpheres.length; i++) { if (i >= visibleLandmarkCount) landmarkSpheres[i].visible = false; }
+             // Hide unused fist meshes (already handled in loop above if not detected)
+            // We need this additional check in case a hand is detected but processVisuals is false for that frame somehow
+             for (let i = visibleFistCount; i < fistMeshes.length; i++) { if(fistMeshes[i]) fistMeshes[i].visible = false; }
+
         }
 
-        // Update glove meshes (Slot 0 = Right Glove, Slot 1 = Left Glove)
-        for (let i = 0; i < 2; i++) {
-            const fistMesh = fistMeshes[i]; // 0 = Right Glove Mesh, 1 = Left Glove Mesh
-            let handData = null;
-            let texture = null;
 
-            if (i === 0 && physicalRightHandDetectedIndex !== -1) { // Update Right Glove Mesh
-                handData = detectedHands[physicalRightHandDetectedIndex];
-                texture = gloveTextures.right;
-            } else if (i === 1 && physicalLeftHandDetectedIndex !== -1) { // Update Left Glove Mesh
-                handData = detectedHands[physicalLeftHandDetectedIndex];
-                texture = gloveTextures.left;
-            }
-
-            if (handData && handData.mcpCount > 0 && texture) {
-                // Flip X-coord for 3D display
-                const fistX = -(handData.avgX - 0.5) * WORLD_WIDTH;
-                const fistY = -(handData.avgY - 0.5) * WORLD_HEIGHT;
-                const fistZ = -handData.avgZ * DEPTH_SCALE + 0.1; // Slightly in front
-
-                fistMesh.position.set(fistX, fistY, fistZ);
-                if (fistMesh.material.map !== texture) {
-                    fistMesh.material.map = texture;
-                    fistMesh.material.needsUpdate = true;
-                }
-                fistMesh.visible = true;
-                visibleFistCount++;
-            } else {
-                fistMesh.visible = false; // Hide if corresponding hand not detected
-            }
-        }
-
-        // --- 3. Collision Detection & Hit Logic (Distance Check) ---
+        // Collision Detection only if playing
         if (currentGameState === GameState.PLAYING && targetMesh && targetMesh.visible) {
             for (let i = 0; i < fistMeshes.length; i++) {
                 const fistMesh = fistMeshes[i];
                 if (fistMesh.visible) {
                     const currentTime = Date.now();
                     if (currentTime - last_punch_time[i] > punch_cooldown) {
-                        // Calculate distance between fist center and target center (2D)
                         const dx = fistMesh.position.x - targetMesh.position.x;
                         const dy = fistMesh.position.y - targetMesh.position.y;
                         const distance = Math.sqrt(dx * dx + dy * dy);
-
                         if (distance < HIT_DISTANCE_THRESHOLD) {
-                            console.log(`HIT DETECTED by hand ${i} (Distance: ${distance.toFixed(2)})!`);
                             score++;
-                            scoreElement.textContent = `Score: ${score}`; // UPDATE SCORE DISPLAY
+                            scoreElement.textContent = `Score: ${score}`;
                             current_round_hits++;
                             last_punch_time[i] = currentTime;
-
                             moveTarget();
                             const new_stage = Math.min(MAX_DAMAGE_STAGE, 1 + Math.floor(current_round_hits / HITS_PER_STAGE));
                             if (new_stage !== target_damage_stage) {
                                 target_damage_stage = new_stage;
-                                console.log(`Target entering damage stage ${target_damage_stage}`);
                                 updateTargetTexture();
                             }
-                            break; // Only one hit per frame
+                            break;
                         }
                     }
                 }
             }
         }
 
-        // Hide unused landmark spheres / fist meshes (remains same)
-        for (let i = 0; i < landmarkSpheres.length; i++) {
-            if (i >= visibleLandmarkCount) landmarkSpheres[i].visible = false;
-        }
-        for (let i = visibleFistCount; i < fistMeshes.length; i++) {
-            fistMeshes[i].visible = false;
-        }
-    }
+    } // End onHandResults
 
     // --- Main Processing Loop ---
     async function startApp() {
         await setupThreeJS(); // Wait for assets and Three.js setup
         await setupCamera(); // Then setup camera
         console.log("Camera setup complete. MediaPipe loop starting.");
+        loadHighScores(); // Load scores on startup
         showTitleScreen(); // Show title screen initially
         sendFrameToMediaPipe(); // Start the MediaPipe loop
     }
@@ -589,6 +595,118 @@ if (typeof Hands === 'undefined') {
     }
 
     startApp(); // Start the application setup process
+}
+
+// --- Leaderboard Functions ---
+function loadHighScores() {
+    const storedScores = localStorage.getItem(LEADERBOARD_KEY);
+    if (storedScores) {
+        try {
+            const parsed = JSON.parse(storedScores);
+            // Basic validation
+            if (parsed && typeof parsed === 'object' && parsed['30'] && parsed['60']) {
+                highScores = parsed;
+                 // Ensure scores are sorted (might not be necessary if saved correctly)
+                highScores['30'].sort((a, b) => b.score - a.score);
+                highScores['60'].sort((a, b) => b.score - a.score);
+                console.log("High scores loaded from localStorage.");
+            } else {
+                 console.warn("Invalid leaderboard format in localStorage. Using defaults.");
+                 resetHighScores(); // Reset to default if format is wrong
+            }
+
+        } catch (e) {
+            console.error("Error parsing high scores from localStorage:", e);
+             resetHighScores(); // Reset to default on error
+        }
+    } else {
+        console.log("No high scores found in localStorage. Using defaults.");
+         resetHighScores(); // Initialize with defaults if none exist
+    }
+     // Ensure arrays exist and are capped
+    highScores['30'] = highScores['30']?.slice(0, MAX_SCORES_PER_LB) || [];
+    highScores['60'] = highScores['60']?.slice(0, MAX_SCORES_PER_LB) || [];
+}
+
+function saveHighScores() {
+    try {
+        localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(highScores));
+        console.log("High scores saved to localStorage.");
+    } catch (e) {
+        console.error("Error saving high scores to localStorage:", e);
+    }
+}
+
+function resetHighScores() {
+    highScores = { '30': [], '60': [] };
+    // Optionally save the reset state immediately
+    // saveHighScores();
+}
+
+function isHighScore(score, duration) {
+    const board = highScores[duration.toString()] || [];
+    if (board.length < MAX_SCORES_PER_LB) {
+        return true; // Qualifies if board isn't full
+    }
+    // Qualifies if score is higher than the lowest score on the full board
+    return score > board[MAX_SCORES_PER_LB - 1].score;
+}
+
+function addHighScore(name, score, duration) {
+    const boardKey = duration.toString();
+    const newEntry = { name: name || '???', score: score };
+
+    if (!highScores[boardKey]) {
+        highScores[boardKey] = [];
+    }
+
+    highScores[boardKey].push(newEntry);
+    highScores[boardKey].sort((a, b) => b.score - a.score); // Sort descending by score
+    highScores[boardKey] = highScores[boardKey].slice(0, MAX_SCORES_PER_LB); // Keep only top scores
+
+    saveHighScores();
+}
+
+function populateLeaderboard() {
+    populateList(lbList30, highScores['30']);
+    populateList(lbList60, highScores['60']);
+}
+
+function populateList(listElement, scores) {
+    if (!listElement) return;
+    listElement.innerHTML = ''; // Clear previous entries
+    if (!scores || scores.length === 0) {
+        listElement.innerHTML = '<li>No scores yet!</li>';
+        return;
+    }
+    scores.forEach(entry => {
+        const li = document.createElement('li');
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'lb-name';
+        nameSpan.textContent = entry.name;
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'lb-score';
+        scoreSpan.textContent = entry.score;
+        li.appendChild(nameSpan);
+        li.appendChild(scoreSpan);
+        listElement.appendChild(li);
+    });
+     // Add placeholders if list is shorter than max
+    for (let i = scores.length; i < MAX_SCORES_PER_LB; i++) {
+         const li = document.createElement('li');
+         li.innerHTML = `<span class="lb-name">---</span><span class="lb-score">--</span>`;
+         listElement.appendChild(li);
+    }
+}
+
+function submitScore() {
+    const name = nameInput.value.trim();
+    if (name) {
+        addHighScore(name, score, selectedDuration);
+        showLeaderboardScreen(); // Show leaderboard after submitting
+    } else {
+        alert("Please enter a name!");
+    }
 }
 
 // We will add Three.js initialization here next. 

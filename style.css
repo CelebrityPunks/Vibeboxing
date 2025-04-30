@@ -145,4 +145,147 @@ canvas {
 #title-screen button.duration-button:hover {
     background-color: #00dddd;
     box-shadow: 0 6px 12px rgba(0, 255, 255, 0.6);
+}
+
+/* Add spacing for leaderboard button */
+#title-screen #leaderboard-button {
+    margin-top: 15px;
+    padding: 10px 20px;
+    font-size: 1.1em;
+    background-color: #555;
+    color: #eee;
+    pointer-events: auto;
+    font-family: 'Exo 2', sans-serif;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    /* Add hover/active effects if desired */
+}
+#title-screen #leaderboard-button:hover {
+    background-color: #777;
+}
+
+
+/* Game Over Screen adjustments */
+#new-highscore-prompt {
+    margin: 15px 0;
+    font-size: 1.2em;
+    color: #00ff00;
+}
+#new-highscore-prompt button, #go-title-button {
+    padding: 10px 20px;
+    font-size: 1.2em;
+    margin-top: 10px;
+     font-family: 'Exo 2', sans-serif;
+    cursor: pointer;
+    background-color: #00ffff;
+    color: #111;
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 255, 255, 0.4);
+    transition: background-color 0.2s, box-shadow 0.2s;
+    pointer-events: auto;
+}
+#new-highscore-prompt button:hover, #go-title-button:hover {
+     background-color: #00dddd;
+    box-shadow: 0 6px 12px rgba(0, 255, 255, 0.6);
+}
+
+
+/* Enter Name Screen Styles */
+#enter-name-screen h2 { font-size: 3em; margin-bottom: 15px; color: #00ff00; }
+#enter-name-screen p { font-size: 1.5em; margin-bottom: 20px; }
+#enter-name-screen input {
+    padding: 10px;
+    font-size: 1.2em;
+    margin-bottom: 20px;
+    width: 250px;
+    max-width: 80%;
+    text-align: center;
+    background-color: #333;
+    color: white;
+    border: 1px solid #777;
+    border-radius: 4px;
+    pointer-events: auto;
+}
+#enter-name-screen button {
+    padding: 12px 25px;
+    font-size: 1.3em;
+     font-family: 'Exo 2', sans-serif;
+    cursor: pointer;
+    background-color: #00ff00;
+    color: #111;
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 255, 0, 0.4);
+    pointer-events: auto;
+}
+#enter-name-screen button:hover {
+    background-color: #00dd00;
+    box-shadow: 0 6px 12px rgba(0, 255, 0, 0.6);
+}
+
+/* Leaderboard Screen Styles */
+#leaderboard-screen h2 { font-size: 3em; margin-bottom: 25px; }
+#leaderboard-screen .leaderboard-columns {
+    display: flex;
+    gap: 50px; /* Space between columns */
+    margin-bottom: 30px;
+    width: 80%;
+    max-width: 700px;
+    justify-content: space-around;
+}
+#leaderboard-screen .leaderboard-column {
+    flex: 1;
+    text-align: center;
+}
+#leaderboard-screen .leaderboard-column h3 {
+    font-size: 1.8em;
+    color: #00ffff;
+    margin-bottom: 15px;
+}
+#leaderboard-screen ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 1.2em;
+    line-height: 1.6;
+}
+#leaderboard-screen li {
+    border-bottom: 1px dashed #555;
+    padding: 5px 0;
+}
+#leaderboard-screen li:last-child {
+    border-bottom: none;
+}
+#leaderboard-screen li span {
+    display: inline-block; /* Allow spacing */
+}
+#leaderboard-screen li .lb-name {
+    width: 60%; /* Adjust as needed */
+    text-align: left;
+    padding-left: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#leaderboard-screen li .lb-score {
+    width: 35%; /* Adjust as needed */
+    text-align: right;
+    padding-right: 10px;
+    color: #00ff00;
+}
+#leaderboard-screen #lb-back-button {
+     padding: 10px 20px;
+    font-size: 1.1em;
+     font-family: 'Exo 2', sans-serif;
+    cursor: pointer;
+    background-color: #555;
+    color: #eee;
+    border: none;
+    border-radius: 5px;
+    pointer-events: auto;
+}
+#leaderboard-screen #lb-back-button:hover {
+    background-color: #777;
 } 
