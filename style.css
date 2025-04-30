@@ -49,10 +49,10 @@ canvas {
 }
 
 #title-image {
-    max-width: 50%; /* Reduced size further */
-    height: auto;
-    margin-bottom: 20px; /* Slightly reduced space below image */
-    flex-shrink: 0;
+    max-width: 40%; /* Significantly smaller width */
+    max-height: 30vh; /* Limit vertical height (30% of viewport height) */
+    height: auto; /* Maintain aspect ratio within limits */
+    margin-bottom: 15px; /* Reduced space below image */
 }
 
 #title-screen button {
@@ -75,10 +75,9 @@ canvas {
 }
 
 #title-screen p {
-    margin-top: 15px; /* Reduced space above help text */
+    margin-top: 15px;
     font-size: 0.9em;
     color: #ccc;
-    flex-shrink: 0;
 }
 
 
@@ -141,11 +140,10 @@ canvas {
 
 /* Styles for duration selection */
 #duration-selection {
-    margin-bottom: 15px; /* Keep this */
+    margin-bottom: 15px;
     margin-top: 0;
     display: flex;
     gap: 20px;
-    flex-shrink: 0;
 }
 
 #title-screen button.duration-button { /* Target specific buttons */
@@ -171,8 +169,7 @@ canvas {
 #leaderboard-button {
     padding: 10px 20px;
     font-size: 1.1em;
-    margin-top: 15px; /* Keep this */
-    flex-shrink: 0; /* Ensure button doesn't shrink */
+    margin-top: 15px;
 }
 
 
@@ -314,7 +311,7 @@ canvas {
     pointer-events: auto;
     min-width: 150px;
     text-align: center;
-    flex-shrink: 0; /* Prevent buttons shrinking */
+    flex-shrink: 0; /* KEEP buttons from shrinking ugly */
 }
 .button-primary:active, .button-secondary:active {
     transform: translateY(1px);
