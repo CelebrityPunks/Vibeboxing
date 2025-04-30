@@ -96,12 +96,16 @@ function showGameOverScreen() {
                  useCORS: true, // Still needed for external resources
                  logging: true, // Turn ON verbose logging for html2canvas
                  backgroundColor: null, // Try to keep background transparent
-                 // Optional: Explicit dimensions might sometimes help
-                 // width: window.innerWidth,
-                 // height: window.innerHeight,
                  onclone: (clonedDoc) => { // Log during cloning process
-                    console.log("html2canvas: Document cloned for rendering.");
-                    // Optional: Modify clonedDoc here if needed
+                    console.log("html2canvas: Document cloned.");
+                    // Attempt to hide the video element in the clone
+                    const clonedVideo = clonedDoc.getElementById('input_video');
+                    if (clonedVideo) {
+                        console.log("html2canvas: Hiding video element in cloned document.");
+                        clonedVideo.style.display = 'none'; // Hide the video in the version html2canvas renders
+                    } else {
+                        console.warn("html2canvas: Could not find video element in clone to hide.");
+                    }
                  }
             }).then(canvas => {
                 console.log("html2canvas capture successful. Canvas obtained.");
@@ -119,11 +123,11 @@ function showGameOverScreen() {
 
                 } catch (e) {
                      // This catch block is often hit if the canvas becomes "tainted" due to CORS issues
-                    console.error("CRITICAL: Error generating Data URL from canvas - likely tainted by cross-origin content.", e);
+                    console.error("CRITICAL: Error generating Data URL from canvas - likely tainted.", e);
                      screenshotDataUrl = null;
                     if (screenshotPreview) screenshotPreview.style.display = 'none';
                     if(shareScoreButton) shareScoreButton.style.display = 'none';
-                    alert("Error generating screenshot image. Security restrictions might be blocking content.");
+                    alert("Error generating screenshot image. Security issue?");
                 }
 
             }).catch(e => {
@@ -134,7 +138,7 @@ function showGameOverScreen() {
                 if(shareScoreButton) shareScoreButton.style.display = 'none';
                 alert("Error creating screenshot image.");
             });
-        }, 200); // Increased delay slightly to 200ms
+        }, 200); // Keep delay
     }
 }
 
