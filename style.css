@@ -41,11 +41,12 @@ canvas {
     box-sizing: border-box; /* Include padding in height/width */
 }
 
-#title-screen h1 {
-    font-size: 4em;
-    margin-bottom: 15px; /* Reduced margin */
-    color: #00ffff; /* Cyan */
-    text-shadow: 2px 2px 5px #000;
+#title-image {
+    max-width: 80%; /* Prevent image from being too wide */
+    height: auto; /* Maintain aspect ratio */
+    margin-bottom: 25px; /* Space below image */
+    /* Optional: add drop shadow or other effects */
+    /* filter: drop-shadow(3px 3px 5px rgba(0,0,0,0.7)); */
 }
 
 #title-screen button {
